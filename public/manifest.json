@@ -1,0 +1,55 @@
+{
+“name”: “Virtual NA Meeting Finder”,
+“short_name”: “Virtual NA”,
+“description”: “Find virtual and phone NA meetings by current time block.”,
+“start_url”: “/”,
+“display”: “standalone”,
+“background_color”: “#ffffff”,
+“theme_color”: “#111111”,
+“icons”: [
+{
+“src”: “/icon-192.png”,
+“sizes”: “192x192”,
+“type”: “image/png”
+},
+{
+“src”: “/icon-512.png”,
+“sizes”: “512x512”,
+“type”: “image/png”
+}
+]
+}
+
+Commit changes.
+
+3. Create service-worker.js
+
+Still inside the public folder, create another new file named:
+
+service-worker.js
+
+Paste this:
+
+const CACHE_NAME = “virtual-na-meeting-finder-v1”;
+
+const FILES_TO_CACHE = [
+“/”,
+“/index.html”,
+“/manifest.json”,
+“/icon-192.png”,
+“/icon-512.png”
+];
+
+self.addEventListener(“install”, event => {
+event.waitUntil(
+caches.open(CACHE_NAME).then(cache => {
+return cache.addAll(FILES_TO_CACHE);
+})
+);
+});
+
+self.addEventListener(“fetch”, event => {
+event.respondWith(
+fetch(event.request).catch(() => caches.match(event.request))
+);
+});
