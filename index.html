@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Virtual NA Meeting Finder</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 20px;
+      color: #222;
+    }
+
+    h1 {
+      margin-bottom: 5px;
+    }
+
+    .top {
+      background: white;
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.08);
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    select, input, button {
+      padding: 10px;
+      font-size: 15px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      background: #222;
+      color: white;
+    }
+
+    .block {
+      background: white;
+      border-radius: 12px;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.08);
+      overflow: hidden;
+    }
+
+    .block-header {
+      background: #222;
+      color: white;
+      padding: 12px 14px;
+      font-weight: bold;
+    }
+
+    .meeting {
+      padding: 14px;
+      border-top: 1px solid #ddd;
+    }
+
+    .meeting-title {
+      font-weight: bold;
+      font-size: 17px;
+      margin-bottom: 6px;
+    }
+
+    .meta {
+      color: #555;
+      font-size: 14px;
+      margin-bottom: 6px;
+    }
+
+    .join {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 8px 10px;
+      background: #0066cc;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+    }
+
+    .empty {
+      background: white;
+      padding: 16px;
+      border-radius: 12px;
+    }
+
+    .small {
+      color: #666;
+      font-size: 13px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="top">
+    <h1>Virtual NA Meeting Finder</h1>
+    <div class="small">
+      Shows virtual/phone NA meetings grouped into approximate 15-minute time blocks in your local timezone.
+    </div>
+
+    <div class="controls">
+      <select id="daySelect"></select>
+      <select id="timeSelect"></select>
+      <input id="searchBox" type="text" placeholder="Search name, format, info..." />
+      <button onclick="loadMeetings()">Refresh</button>
+    </div>
+
+    <p id="status" class="small">Loading meetings...</p>
+  </div>
+
+  <div id="results"></div>
+
+  <script>
+    const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    let allMeetings = [];
+
+    function pad(n) {
+      return String(n).padStart(2, "0");
+    }
+
+    function makeTimeBlocks() {
+      const select = document.getElementById("timeSelect");
+      select.innerHTML = "";
+
+      for (let minutes = 0; minutes < 24 * 60; minutes += 15) {
+        const h = Math.floor(minutes / 60);
+        const m = minutes % 60;
+        const value = `${pad(h)}:${pad(m)}`;
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = toDisplayTime(value);
+        select.appendChild(option);
+      }
+
+      const now = new Date();
+      const rounded = Math.floor((now.getHours() * 60 + now.getMinutes()) / 15) * 15;
+      const h = Math.floor(rounded / 60);
+      const m = rounded % 60;
+      select.value = `${pad(h)}:${pad(m)}`;
+    }
+
+    function makeDayOptions() {
+      const select = document.getElementById("daySelect");
+      select.innerHTML = "";
+
+      const today = new Date().getDay();
+
+      dayNames.forEach((day, index) => {
+        const option = document.createElement("option");
+        option.value = index;
+        option.textContent = day;
+        select.appendChild(option);
+      });
+
+      select.value = today;
+    }
+
+    function toDisplayTime(hhmm) {
+      const [h, m] = hhmm.split(":").map(Number);
+      const date = new Date();
+      date.setHours(h, m, 0, 0);
+
+      return date.toLocaleTimeString([], {
+        hour: "numeric",
+        minute: "2-digit"
+      });
+    }
+
+    function convertMeetingToLocal(meeting) {
+      const [h, m, s] = meeting.startTime.split(":").map(Number);
+
+      const now = new Date();
+      const localDate = new Date(now);
+
+      const sourceWeekday = meeting.weekday;
+
+      return {
+        ...meeting,
+        localWeekday: sourceWeekday ? sourceWeekday - 1 : 0,
+        localMinutes: h * 60 + m,
+        localTimeText: toDisplayTime(`${pad(h)}:${pad(m)}`)
+      };
+    }
+
+    function blockKey(minutes) {
+      const rounded = Math.floor(minutes / 15) * 15;
+      const h = Math.floor(rounded / 60);
+      const m = rounded % 60;
+      return `${pad(h)}:${pad(m)}`;
+    }
+
+    function renderMeetings() {
+      const results = document.getElementById("results");
+      const day = Number(document.getElementById("daySelect").value);
+      const selectedTime = document.getElementById("timeSelect").value;
+      const search = document.getElementById("searchBox").value.toLowerCase().trim();
+
+      const [selectedH, selectedM] = selectedTime.split(":").map(Number);
+      const selectedMinutes = selectedH * 60 + selectedM;
+
+      const windowBefore = 0;
+      const windowAfter = 15;
+
+      const filtered = allMeetings
+        .map(convertMeetingToLocal)
+        .filter(m => m.localWeekday === day)
+        .filter(m => m.localMinutes >= selectedMinutes - windowBefore)
+        .filter(m => m.localMinutes < selectedMinutes + windowAfter)
+        .filter(m => {
+          if (!search) return true;
+
+          const haystack = [
+            m.name,
+            m.formats,
+            m.extra,
+            m.phone,
+            m.joinUrl
+          ].join(" ").toLowerCase();
+
+          return haystack.includes(search);
+        })
+        .sort((a, b) => a.localMinutes - b.localMinutes || a.name.localeCompare(b.name));
+
+      if (!filtered.length) {
+        results.innerHTML = `<div class="empty">No meetings found for this 15-minute block.</div>`;
+        return;
+      }
+
+      const grouped = {};
+
+      filtered.forEach(meeting => {
+        const key = blockKey(meeting.localMinutes);
+        if (!grouped[key]) grouped[key] = [];
+        grouped[key].push(meeting);
+      });
+
+      results.innerHTML = Object.entries(grouped)
+        .map(([time, meetings]) => `
+          <div class="block">
+            <div class="block-header">
+              ${dayNames[day]} around ${toDisplayTime(time)} (${meetings.length})
+            </div>
+
+            ${meetings.map(m => `
+              <div class="meeting">
+                <div class="meeting-title">${escapeHtml(m.name)}</div>
+
+                <div class="meta">
+                  Starts: ${escapeHtml(m.localTimeText)}
+                  ${m.timeZone ? ` | Listed timezone: ${escapeHtml(m.timeZone)}` : ""}
+                </div>
+
+                ${m.formats ? `<div class="meta">Formats: ${escapeHtml(m.formats)}</div>` : ""}
+                ${m.phone ? `<div class="meta">Phone: ${escapeHtml(m.phone)}</div>` : ""}
+                ${m.extra ? `<div class="meta">${escapeHtml(m.extra)}</div>` : ""}
+
+                ${m.joinUrl ? `
+                  <a class="join" href="${escapeAttr(m.joinUrl)}" target="_blank" rel="noopener">
+                    Join Meeting
+                  </a>
+                ` : ""}
+              </div>
+            `).join("")}
+          </div>
+        `)
+        .join("");
+    }
+
+    function escapeHtml(value) {
+      return String(value || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function escapeAttr(value) {
+      return escapeHtml(value);
+    }
+
+    async function loadMeetings() {
+      const status = document.getElementById("status");
+      const results = document.getElementById("results");
+
+      status.textContent = "Loading meetings...";
+      results.innerHTML = "";
+
+      try {
+        const response = await fetch("/api/meetings");
+        const data = await response.json();
+
+        if (!response.ok || data.error) {
+          throw new Error(data.message || "Could not load meetings.");
+        }
+
+        allMeetings = data.meetings || [];
+
+        status.textContent = `Loaded ${allMeetings.length} virtual/phone meetings from ${data.source}.`;
+
+        renderMeetings();
+      } catch (error) {
+        status.textContent = "Error loading meetings.";
+        results.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      makeDayOptions();
+      makeTimeBlocks();
+
+      document.getElementById("daySelect").addEventListener("change", renderMeetings);
+      document.getElementById("timeSelect").addEventListener("change", renderMeetings);
+      document.getElementById("searchBox").addEventListener("input", renderMeetings);
+
+      loadMeetings();
+    });
+  </script>
+</body>
+</html>
