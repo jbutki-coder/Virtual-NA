@@ -560,66 +560,83 @@
 
       const filtered = allMeetings
         .map(convertMeetingToLocal)
-        .filter(m => m.localWeekday === day)
-        .filter(m => m.localMinutes >= selectedMinutes)
-        .filter(m => m.localMinutes < selectedMinutes + 15)
         .filter(m => {
-          if (!search) return true;
-
           const haystack = [
             m.name,
             m.formats,
             m.extra,
             m.phone,
-            m.joinUrl
+            m.joinUrl,
+            m.timeZone,
+            dayNames[m.localWeekday],
+            m.localTimeText
           ].join(" ").toLowerCase();
 
-          return haystack.includes(search);
+          if (search) {
+            return haystack.includes(search);
+          }
+
+          return (
+            m.localWeekday === day &&
+            m.localMinutes >= selectedMinutes &&
+            m.localMinutes < selectedMinutes + 15
+          );
         })
-        .sort((a, b) => a.localMinutes - b.localMinutes || a.name.localeCompare(b.name));
+        .sort((a, b) =>
+          a.localWeekday - b.localWeekday ||
+          a.localMinutes - b.localMinutes ||
+          a.name.localeCompare(b.name)
+        );
 
       if (!filtered.length) {
-        results.innerHTML = `<div class="empty">No meetings found for this 15-minute block.</div>`;
+        results.innerHTML = search
+          ? `<div class="empty">No meetings found matching “${escapeHtml(search)}”.</div>`
+          : `<div class="empty">No meetings found for this 15-minute block.</div>`;
         return;
       }
 
       const grouped = {};
 
       filtered.forEach(meeting => {
-        const key = blockKey(meeting.localMinutes);
+        const key = `${meeting.localWeekday}-${blockKey(meeting.localMinutes)}`;
         if (!grouped[key]) grouped[key] = [];
         grouped[key].push(meeting);
       });
 
       results.innerHTML = Object.entries(grouped)
-        .map(([time, meetings]) => `
-          <div>
-            <div class="block-header">
-              ${dayNames[day]} around ${toDisplayTime(time)} (${meetings.length})
-            </div>
+        .map(([key, meetings]) => {
+          const [weekday, time] = key.split("-");
 
-            ${meetings.map(m => `
-              <div class="meeting">
-                <div class="meeting-title">${escapeHtml(m.name)}</div>
-
-                <div class="meta">
-                  Starts: ${escapeHtml(m.localTimeText)}
-                  ${m.timeZone ? ` | Time zone: ${escapeHtml(m.timeZone)}` : ""}
-                </div>
-
-                ${m.formats ? `<div class="meta">Formats: ${escapeHtml(m.formats)}</div>` : ""}
-                ${m.phone ? `<div class="meta">Phone: ${escapeHtml(m.phone)}</div>` : ""}
-                ${m.extra ? `<div class="meta">${escapeHtml(m.extra)}</div>` : ""}
-
-                ${m.joinUrl ? `
-                  <a class="join" href="${escapeAttr(m.joinUrl)}" target="_blank" rel="noopener">
-                    Join Meeting
-                  </a>
-                ` : ""}
+          return `
+            <div>
+              <div class="block-header">
+                ${search ? "Search result: " : ""}
+                ${dayNames[Number(weekday)]} around ${toDisplayTime(time)} (${meetings.length})
               </div>
-            `).join("")}
-          </div>
-        `)
+
+              ${meetings.map(m => `
+                <div class="meeting">
+                  <div class="meeting-title">${escapeHtml(m.name)}</div>
+
+                  <div class="meta">
+                    Starts: ${escapeHtml(m.localTimeText)}
+                    ${m.timeZone ? ` | Time zone: ${escapeHtml(m.timeZone)}` : ""}
+                  </div>
+
+                  ${m.formats ? `<div class="meta">Formats: ${escapeHtml(m.formats)}</div>` : ""}
+                  ${m.phone ? `<div class="meta">Phone: ${escapeHtml(m.phone)}</div>` : ""}
+                  ${m.extra ? `<div class="meta">${escapeHtml(m.extra)}</div>` : ""}
+
+                  ${m.joinUrl ? `
+                    <a class="join" href="${escapeAttr(m.joinUrl)}" target="_blank" rel="noopener">
+                      Join Meeting
+                    </a>
+                  ` : ""}
+                </div>
+              `).join("")}
+            </div>
+          `;
+        })
         .join("");
     }
 
