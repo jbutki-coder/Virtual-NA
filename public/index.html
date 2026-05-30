@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#111111">
+<link rel="apple-touch-icon" href="/icon-192.png">
   <meta charset="UTF-8" />
   <title>Virtual NA Meeting Finder</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -327,5 +330,10 @@
       loadMeetings();
     });
   </script>
+<script>
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("/service-worker.js");
+  }
+</script>
 </body>
 </html>
