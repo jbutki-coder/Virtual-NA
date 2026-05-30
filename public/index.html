@@ -52,6 +52,52 @@
       padding: 18px 10px 16px;
     }
 
+    .na-diamond-mark {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 4px auto 20px;
+    }
+
+    .diamond {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transform: rotate(45deg);
+    }
+
+    .diamond-outer {
+      width: 112px;
+      height: 112px;
+      border: 3px solid var(--yellow);
+      background: rgba(243, 212, 0, 0.08);
+      box-shadow: 0 0 22px rgba(243, 212, 0, 0.75);
+    }
+
+    .diamond-middle {
+      width: 82px;
+      height: 82px;
+      border: 3px solid var(--green);
+      background: rgba(34, 177, 76, 0.08);
+      box-shadow: 0 0 20px rgba(34, 177, 76, 0.65);
+    }
+
+    .diamond-inner {
+      width: 52px;
+      height: 52px;
+      border: 2px solid #ffffff;
+      background: #050505;
+    }
+
+    .diamond-inner span {
+      transform: rotate(-45deg);
+      color: var(--yellow);
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      text-shadow: var(--glow-yellow);
+    }
+
     .title {
       margin: 0;
       font-size: 34px;
@@ -65,6 +111,15 @@
       margin-top: 8px;
       color: var(--muted);
       font-size: 15px;
+    }
+
+    .na-note {
+      margin: 10px auto 0;
+      max-width: 650px;
+      color: #f1f1f1;
+      font-size: 13px;
+      line-height: 1.45;
+      opacity: 0.85;
     }
 
     .controls-card {
@@ -261,6 +316,25 @@
         font-size: 28px;
       }
 
+      .diamond-outer {
+        width: 92px;
+        height: 92px;
+      }
+
+      .diamond-middle {
+        width: 68px;
+        height: 68px;
+      }
+
+      .diamond-inner {
+        width: 44px;
+        height: 44px;
+      }
+
+      .diamond-inner span {
+        font-size: 19px;
+      }
+
       .tabs {
         grid-template-columns: repeat(4, 1fr);
       }
@@ -288,8 +362,21 @@
 <body>
   <div class="app">
     <div class="header">
-      <h1 class="title">Find Meetings</h1>
-      <div class="subtitle">Virtual and phone NA meetings by time block</div>
+      <div class="na-diamond-mark" aria-hidden="true">
+        <div class="diamond diamond-outer">
+          <div class="diamond diamond-middle">
+            <div class="diamond diamond-inner">
+              <span>NA</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h1 class="title">Virtual NA Meeting Finder</h1>
+      <div class="subtitle">Find online and phone Narcotics Anonymous meetings by time block</div>
+      <div class="na-note">
+        This meeting finder is for Narcotics Anonymous virtual and phone meetings. The diamond mark is a simple original design and is not the official NA logo.
+      </div>
     </div>
 
     <div class="controls-card">
@@ -310,7 +397,7 @@
       </div>
 
       <div class="search-row">
-        <input id="searchBox" type="text" placeholder="Search name, format, info..." />
+        <input id="searchBox" type="text" placeholder="Search meeting name, format, info..." />
         <button onclick="loadMeetings()">Refresh</button>
       </div>
 
