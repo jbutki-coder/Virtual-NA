@@ -1,66 +1,67 @@
 import express from "express";
 import cors from "cors";
+import fs from "fs/promises";
+import path from "path";
+import { fileURLToPath } from "url";
 
 const app = express();
 const PORT = 3000;
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 app.use(cors());
 app.use(express.static("public"));
+
+const DEFAULT_TARGET_TIME_ZONE = "America/Detroit";
 
 const BMLT_SOURCES = [
   {
     name: "Virtual NA / BMLT",
+    fellowship: "NA",
     url: "https://bmlt.virtual-na.org/main_server/client_interface/json/?switcher=GetSearchResults"
-  },
-
-  // These are candidate BMLT endpoints. If one fails, the app skips it.
-  {
-    name: "NAHelp / BMLT",
-    url: "https://nahelp.org/main_server/client_interface/json/?switcher=GetSearchResults"
-  },
-  {
-    name: "NAHelp / BMLT Alt",
-    url: "https://nahelp.org/bmlt/main_server/client_interface/json/?switcher=GetSearchResults"
-  },
-  {
-    name: "Billwild / BMLT",
-    url: "https://billwild.net/main_server/client_interface/json/?switcher=GetSearchResults"
-  },
-  {
-    name: "Billwild / BMLT Alt",
-    url: "https://billwild.net/bmlt/main_server/client_interface/json/?switcher=GetSearchResults"
   }
 ];
 
-const HTML_SOURCES = [
-  {
-    name: "NAHelp",
-    url: "https://nahelp.org/meetings/",
-    kind: "nahelp"
-  },
-  {
-    name: "Billwild",
-    url: "https://billwild.net/",
-    kind: "billwild"
-  }
-];
+const TIME_ZONE_ALIASES = {
+  eastern: "America/New_York",
+  east: "America/New_York",
+  est: "America/New_York",
+  edt: "America/New_York",
+  michigan: "America/Detroit",
+  detroit: "America/Detroit",
 
-function cleanText(value) {
-  return String(value || "")
-    .replace(/<script[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style[\s\S]*?<\/style>/gi, " ")
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/p>/gi, "\n")
-    .replace(/<\/div>/gi, "\n")
-    .replace(/<\/li>/gi, "\n")
-    .replace(/<\/tr>/gi, "\n")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&#8211;|&#8212;/g, "-")
-    .replace(/&#038;/g, "&")
-    .replace(/\s+/g, " ")
-    .trim();
+  central: "America/Chicago",
+  cst: "America/Chicago",
+  cdt: "America/Chicago",
+  nebraska: "America/Chicago",
+
+  mountain: "America/Denver",
+  mst: "America/Denver",
+  mdt: "America/Denver",
+
+  pacific: "America/Los_Angeles",
+  pst: "America/Los_Angeles",
+  pdt: "America/Los_Angeles"
+};
+
+function normalizeTimeZone(value) {
+  const raw = String(value || "").trim();
+
+  if (!raw) return DEFAULT_TARGET_TIME_ZONE;
+
+  const lower = raw.toLowerCase();
+
+  if (TIME_ZONE_ALIASES[lower]) {
+    return TIME_ZONE_ALIASES[lower];
+  }
+
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: raw }).format(new Date());
+    return raw;
+  } catch {
+    return DEFAULT_TARGET_TIME_ZONE;
+  }
 }
 
 function extractUrls(text) {
@@ -114,6 +115,178 @@ function isVirtualMeeting(m) {
   );
 }
 
+function bmltWeekdayToZeroBased(value) {
+  const n = Number(value || 0);
+
+  if (!n) return 0;
+
+  // BMLT usually uses 1 = Sunday through 7 = Saturday.
+  return (n + 6) % 7;
+}
+
+function customWeekdayToZeroBased(value) {
+  const n = Number(value || 0);
+
+  // Your custom-meetings.json should use:
+  // Sunday = 0, Monday = 1, Tuesday = 2, Wednesday = 3,
+  // Thursday = 4, Friday = 5, Saturday = 6
+  if (n >= 0 && n <= 6) return n;
+
+  // Backup support if something comes in as BMLT style:
+  // Sunday = 1 through Saturday = 7
+  if (n >= 1 && n <= 7) return (n + 6) % 7;
+
+  return 0;
+}
+
+function parseTimeParts(value) {
+  const text = String(value || "").trim();
+
+  const ampmMatch = text.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)/i);
+
+  if (ampmMatch) {
+    let hour = Number(ampmMatch[1]);
+    const minute = Number(ampmMatch[2] || 0);
+    const ampm = ampmMatch[3].toLowerCase();
+
+    if (ampm === "pm" && hour !== 12) hour += 12;
+    if (ampm === "am" && hour === 12) hour = 0;
+
+    return { hour, minute, second: 0 };
+  }
+
+  const parts = text.split(":").map(Number);
+
+  return {
+    hour: Number.isFinite(parts[0]) ? parts[0] : 0,
+    minute: Number.isFinite(parts[1]) ? parts[1] : 0,
+    second: Number.isFinite(parts[2]) ? parts[2] : 0
+  };
+}
+
+function formatTime(hour, minute, second = 0) {
+  return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:${String(second).padStart(2, "0")}`;
+}
+
+function getZonedParts(date, timeZone) {
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23"
+  });
+
+  const parts = formatter.formatToParts(date);
+  const values = {};
+
+  for (const part of parts) {
+    if (part.type !== "literal") {
+      values[part.type] = Number(part.value);
+    }
+  }
+
+  return {
+    year: values.year,
+    month: values.month,
+    day: values.day,
+    hour: values.hour,
+    minute: values.minute,
+    second: values.second
+  };
+}
+
+function zonedLocalTimeToUtcDate({ year, month, day, hour, minute, second, timeZone }) {
+  const wantedUtc = Date.UTC(year, month - 1, day, hour, minute, second);
+  let guessedUtc = wantedUtc;
+
+  for (let i = 0; i < 4; i++) {
+    const parts = getZonedParts(new Date(guessedUtc), timeZone);
+
+    const actualUtc = Date.UTC(
+      parts.year,
+      parts.month - 1,
+      parts.day,
+      parts.hour,
+      parts.minute,
+      parts.second
+    );
+
+    const difference = actualUtc - wantedUtc;
+    guessedUtc -= difference;
+  }
+
+  return new Date(guessedUtc);
+}
+
+function convertMeetingToTargetTimeZone(meeting, targetTimeZone) {
+  const sourceTimeZone = normalizeTimeZone(
+    meeting.sourceTimeZone ||
+    meeting.timeZone ||
+    DEFAULT_TARGET_TIME_ZONE
+  );
+
+  const targetTz = normalizeTimeZone(targetTimeZone || DEFAULT_TARGET_TIME_ZONE);
+
+  const sourceWeekday = customWeekdayToZeroBased(meeting.weekday);
+  const { hour, minute, second } = parseTimeParts(meeting.startTime);
+
+  // Reference week starts Sunday, Jan 7, 2024.
+  const referenceSunday = new Date(Date.UTC(2024, 0, 7, 12, 0, 0));
+  const sourceReferenceDate = new Date(referenceSunday);
+  sourceReferenceDate.setUTCDate(referenceSunday.getUTCDate() + sourceWeekday);
+
+  const year = sourceReferenceDate.getUTCFullYear();
+  const month = sourceReferenceDate.getUTCMonth() + 1;
+  const day = sourceReferenceDate.getUTCDate();
+
+  const utcDate = zonedLocalTimeToUtcDate({
+    year,
+    month,
+    day,
+    hour,
+    minute,
+    second,
+    timeZone: sourceTimeZone
+  });
+
+  const targetParts = getZonedParts(utcDate, targetTz);
+
+  const convertedDate = new Date(Date.UTC(
+    targetParts.year,
+    targetParts.month - 1,
+    targetParts.day,
+    12,
+    0,
+    0
+  ));
+
+  const convertedWeekday = convertedDate.getUTCDay();
+
+  const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+  const originalTimeNote =
+    `Original listed time: ${dayNames[sourceWeekday]} ${formatTime(hour, minute, second)} ${sourceTimeZone}`;
+
+  const extra = meeting.extra
+    ? `${meeting.extra} | ${originalTimeNote}`
+    : originalTimeNote;
+
+  return {
+    ...meeting,
+    weekday: convertedWeekday,
+    startTime: formatTime(targetParts.hour, targetParts.minute, targetParts.second),
+    timeZone: targetTz,
+    sourceTimeZone,
+    sourceWeekday,
+    sourceStartTime: formatTime(hour, minute, second),
+    extra
+  };
+}
+
 function normalizeBmltMeeting(m, sourceName) {
   const name =
     m.meeting_name ||
@@ -121,24 +294,24 @@ function normalizeBmltMeeting(m, sourceName) {
     m.group_name ||
     "Unnamed NA Meeting";
 
-  const weekday =
-    Number(m.weekday_tinyint || m.weekday || m.day || 0);
+  const weekday = bmltWeekdayToZeroBased(
+    m.weekday_tinyint ||
+    m.weekday ||
+    m.day ||
+    0
+  );
 
   const startTime =
     m.start_time ||
     m.time ||
     "00:00:00";
 
-  const duration =
-    m.duration_time ||
-    m.duration ||
-    "";
-
-  const timeZone =
+  const sourceTimeZone = normalizeTimeZone(
     m.time_zone ||
     m.timezone ||
     m.tz ||
-    "Local / listed timezone";
+    DEFAULT_TARGET_TIME_ZONE
+  );
 
   const joinUrl =
     m.virtual_meeting_link ||
@@ -163,11 +336,13 @@ function normalizeBmltMeeting(m, sourceName) {
 
   return {
     source: sourceName,
+    fellowship: "NA",
     name,
     weekday,
     startTime,
-    duration,
-    timeZone,
+    duration: m.duration_time || m.duration || "",
+    timeZone: sourceTimeZone,
+    sourceTimeZone,
     joinUrl,
     phone,
     extra: [...extraParts, `Source: ${sourceName}`].join(" | "),
@@ -206,153 +381,39 @@ async function fetchJsonSource(source) {
   }
 }
 
-function parseTimeTo24Hour(timeText) {
-  const match = String(timeText || "").match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)/i);
-
-  if (!match) {
-    return "00:00:00";
-  }
-
-  let hour = Number(match[1]);
-  const minute = Number(match[2] || 0);
-  const ampm = match[3].toLowerCase();
-
-  if (ampm === "pm" && hour !== 12) hour += 12;
-  if (ampm === "am" && hour === 12) hour = 0;
-
-  return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:00`;
-}
-
-function weekdayNameToNumber(dayName) {
-  const days = {
-    sunday: 1,
-    monday: 2,
-    tuesday: 3,
-    wednesday: 4,
-    thursday: 5,
-    friday: 6,
-    saturday: 7
-  };
-
-  return days[String(dayName || "").toLowerCase()] || 0;
-}
-
-function parseBillwildHtml(html) {
-  const text = cleanText(html);
-  const meetings = [];
-
-  const dayPattern =
-    /(Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday)\s+(\d{1,2}:\d{2}\s*(?:am|pm))\s*-\s*(\d{1,2}:\d{2}\s*(?:am|pm))\s+([^]*?)(?=(Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday)\s+\d{1,2}:\d{2}\s*(?:am|pm)|$)/gi;
-
-  let match;
-
-  while ((match = dayPattern.exec(text)) !== null) {
-    const day = match[1];
-    const start = match[2];
-    const end = match[3];
-    const details = match[4].trim();
-
-    if (!isVirtualOrHybridText(details)) continue;
-
-    const urls = extractUrls(details);
-
-    let name = details
-      .replace(/Zoom ID:.*$/i, "")
-      .replace(/Meets Virtually.*$/i, "")
-      .replace(/https?:\/\/[^\s]+/gi, "")
-      .replace(/\b(O|C|D|SD|V|VM|HY|VO|ENG|SPK|BT|JT|ST|WC|LC|QA|TO)\b,?/gi, "")
-      .replace(/\s+/g, " ")
-      .trim();
-
-    if (!name || name.length < 3) {
-      name = "Darkside Fellowship Virtual Meeting";
-    }
-
-    meetings.push({
-      source: "Billwild",
-      name,
-      weekday: weekdayNameToNumber(day),
-      startTime: parseTimeTo24Hour(start),
-      duration: `${start} - ${end}`,
-      timeZone: "Listed timezone",
-      joinUrl: urls[0] || "",
-      phone: "",
-      extra: `${details} | Source: Billwild`,
-      formats: "Virtual / Hybrid",
-      raw: { day, start, end, details }
-    });
-  }
-
-  return meetings;
-}
-
-function parseNaHelpHtml(html) {
-  const text = cleanText(html);
-  const meetings = [];
-
-  const pattern =
-    /(\d{1,2}:\d{2}\s*(?:AM|PM|am|pm))\s*(Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday),?\s*([^]*?)(?=\d{1,2}:\d{2}\s*(?:AM|PM|am|pm)\s*(?:Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday)|$)/g;
-
-  let match;
-
-  while ((match = pattern.exec(text)) !== null) {
-    const start = match[1];
-    const day = match[2];
-    const details = match[3].trim();
-
-    if (!isVirtualOrHybridText(details)) continue;
-
-    const urls = extractUrls(details);
-
-    const name = details
-      .split(",")[0]
-      .replace(/https?:\/\/[^\s]+/gi, "")
-      .trim() || "NAHelp Virtual Meeting";
-
-    meetings.push({
-      source: "NAHelp",
-      name,
-      weekday: weekdayNameToNumber(day),
-      startTime: parseTimeTo24Hour(start),
-      duration: "",
-      timeZone: "Listed timezone",
-      joinUrl: urls[0] || "",
-      phone: "",
-      extra: `${details} | Source: NAHelp`,
-      formats: "Virtual / Hybrid / Phone",
-      raw: { day, start, details }
-    });
-  }
-
-  return meetings;
-}
-
-async function fetchHtmlSource(source) {
+async function loadCustomMeetings() {
   try {
-    const response = await fetch(source.url, {
-      headers: {
-        "User-Agent": "Blue-Water-Virtual-NA-Meeting-Finder/1.0",
-        "Accept": "text/html,*/*"
-      }
+    const filePath = path.join(__dirname, "public", "custom-meetings.json");
+    const text = await fs.readFile(filePath, "utf8");
+    const data = JSON.parse(text);
+
+    if (!Array.isArray(data)) return [];
+
+    return data.map(meeting => {
+      const sourceTimeZone = normalizeTimeZone(
+        meeting.sourceTimeZone ||
+        meeting.timeZone ||
+        DEFAULT_TARGET_TIME_ZONE
+      );
+
+      return {
+        source: meeting.source || "Custom NA Meeting",
+        fellowship: "NA",
+        name: meeting.name || "Unnamed Custom NA Meeting",
+        weekday: customWeekdayToZeroBased(meeting.weekday),
+        startTime: meeting.startTime || "00:00:00",
+        duration: meeting.duration || "",
+        timeZone: sourceTimeZone,
+        sourceTimeZone,
+        joinUrl: meeting.joinUrl || "",
+        phone: meeting.phone || "",
+        extra: meeting.extra || "",
+        formats: meeting.formats || "Virtual NA",
+        raw: meeting
+      };
     });
-
-    if (!response.ok) {
-      throw new Error(`${source.name} returned ${response.status}`);
-    }
-
-    const html = await response.text();
-
-    if (source.kind === "billwild") {
-      return parseBillwildHtml(html);
-    }
-
-    if (source.kind === "nahelp") {
-      return parseNaHelpHtml(html);
-    }
-
-    return [];
   } catch (error) {
-    console.warn(`Skipped ${source.name} HTML: ${error.message}`);
+    console.warn(`No custom-meetings.json loaded: ${error.message}`);
     return [];
   }
 }
@@ -367,7 +428,8 @@ function dedupeMeetings(meetings) {
       meeting.weekday,
       meeting.startTime,
       meeting.joinUrl,
-      meeting.phone
+      meeting.phone,
+      meeting.source
     ]
       .join("|")
       .toLowerCase()
@@ -384,21 +446,30 @@ function dedupeMeetings(meetings) {
 
 app.get("/api/meetings", async (req, res) => {
   try {
-    const jsonResults = await Promise.all(
+    const targetTimeZone = normalizeTimeZone(
+      req.query.tz || DEFAULT_TARGET_TIME_ZONE
+    );
+
+    const bmltResults = await Promise.all(
       BMLT_SOURCES.map(source => fetchJsonSource(source))
     );
 
-    const htmlResults = await Promise.all(
-      HTML_SOURCES.map(source => fetchHtmlSource(source))
-    );
+    const customMeetings = await loadCustomMeetings();
 
-    const meetings = dedupeMeetings([
-      ...jsonResults.flat(),
-      ...htmlResults.flat()
+    const meetingsBeforeConversion = dedupeMeetings([
+      ...bmltResults.flat(),
+      ...customMeetings
     ]);
 
+    const convertedMeetings = meetingsBeforeConversion.map(meeting =>
+      convertMeetingToTargetTimeZone(meeting, targetTimeZone)
+    );
+
+    const meetings = dedupeMeetings(convertedMeetings);
+
     res.json({
-      source: "Virtual NA / BMLT + NAHelp + Billwild",
+      source: "Virtual NA / BMLT + Custom NA Meetings",
+      targetTimeZone,
       count: meetings.length,
       meetings
     });
