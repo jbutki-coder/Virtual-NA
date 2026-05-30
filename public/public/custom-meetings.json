@@ -1,0 +1,38 @@
+[
+  {
+    "source": "NAHelp / ASIS",
+    "name": "Grateful Wakeup",
+    "weekday": 1,
+    "startTime": "08:00:00",
+    "duration": "1 hour",
+    "timeZone": "Eastern",
+    "joinUrl": "",
+    "phone": "",
+    "extra": "Zoom ID: 534 022 8362, Password: 505514",
+    "formats": "Online"
+  },
+  {
+    "source": "NAHelp / ASIS",
+    "name": "Life on Life's Terms",
+    "weekday": 2,
+    "startTime": "21:00:00",
+    "duration": "1.5 hours",
+    "timeZone": "Eastern",
+    "joinUrl": "",
+    "phone": "",
+    "extra": "Zoom ID: 816 1849 9975, Password: 1953",
+    "formats": "Literature Study, Online"
+  },
+  {
+    "source": "NAHelp / ASIS",
+    "name": "Fresno Free Basic Text Study",
+    "weekday": 0,
+    "startTime": "00:00:00",
+    "duration": "",
+    "timeZone": "Listed timezone",
+    "joinUrl": "",
+    "phone": "",
+    "extra": "Zoom ID: 350 118 822",
+    "formats": "Basic Text Study, Online"
+  }
+]
