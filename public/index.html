@@ -1,128 +1,330 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#111111">
-<link rel="apple-touch-icon" href="/icon-192.png">
   <meta charset="UTF-8" />
   <title>Virtual NA Meeting Finder</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#050505">
+  <link rel="apple-touch-icon" href="/icon-192.png">
+
   <style>
+    :root {
+      --bg: #050505;
+      --panel: #111214;
+      --panel2: #18191c;
+      --yellow: #f3d400;
+      --green: #22b14c;
+      --green2: #39ff74;
+      --text: #f5f5f5;
+      --muted: #b9b9b9;
+      --border: rgba(243, 212, 0, 0.25);
+      --glow-yellow: 0 0 14px rgba(243, 212, 0, 0.7);
+      --glow-green: 0 0 16px rgba(34, 177, 76, 0.7);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
       margin: 0;
-      padding: 20px;
-      color: #222;
+      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(243, 212, 0, 0.12), transparent 32%),
+        radial-gradient(circle at bottom, rgba(34, 177, 76, 0.12), transparent 30%),
+        #050505;
+      color: var(--text);
+      padding: 18px;
     }
 
-    h1 {
-      margin-bottom: 5px;
+    .app {
+      max-width: 980px;
+      margin: 0 auto;
     }
 
-    .top {
-      background: white;
+    .header {
+      text-align: center;
+      padding: 18px 10px 16px;
+    }
+
+    .title {
+      margin: 0;
+      font-size: 34px;
+      line-height: 1.1;
+      letter-spacing: 0.5px;
+      color: var(--yellow);
+      text-shadow: var(--glow-yellow);
+    }
+
+    .subtitle {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .controls-card {
+      background: linear-gradient(180deg, rgba(28,29,32,0.96), rgba(12,13,15,0.96));
+      border: 1px solid var(--border);
+      border-radius: 18px;
       padding: 16px;
-      border-radius: 12px;
+      box-shadow: 0 0 24px rgba(0,0,0,0.65);
       margin-bottom: 16px;
-      box-shadow: 0 2px 8px rgba(0,0,0,.08);
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+
+    .tab {
+      border: 1px solid rgba(243, 212, 0, 0.25);
+      background: #1a1b1f;
+      color: var(--yellow);
+      padding: 10px 6px;
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 15px;
+      cursor: pointer;
+      text-align: center;
+      box-shadow: inset 0 0 10px rgba(243, 212, 0, 0.04);
+    }
+
+    .tab.active {
+      background: var(--yellow);
+      color: #050505;
+      box-shadow: var(--glow-yellow);
     }
 
     .controls {
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
       gap: 10px;
-      margin-top: 12px;
     }
 
-    select, input, button {
-      padding: 10px;
-      font-size: 15px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
+    .search-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    select,
+    input {
+      width: 100%;
+      padding: 13px 14px;
+      border-radius: 14px;
+      background: #0b0c0e;
+      border: 1px solid rgba(243, 212, 0, 0.35);
+      color: var(--text);
+      font-size: 16px;
+      outline: none;
+    }
+
+    select:focus,
+    input:focus {
+      border-color: var(--yellow);
+      box-shadow: var(--glow-yellow);
     }
 
     button {
-      cursor: pointer;
       border: none;
-      background: #222;
-      color: white;
+      border-radius: 14px;
+      padding: 13px 18px;
+      background: var(--yellow);
+      color: #050505;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: var(--glow-yellow);
     }
 
-    .block {
-      background: white;
-      border-radius: 12px;
-      margin-bottom: 14px;
-      box-shadow: 0 2px 8px rgba(0,0,0,.08);
+    button:active {
+      transform: scale(0.98);
+    }
+
+    .status {
+      color: var(--muted);
+      font-size: 14px;
+      margin: 12px 2px 0;
+    }
+
+    .time-nav {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 12px;
+      margin: 18px 0;
+    }
+
+    .arrow-btn {
+      width: 70px;
+      min-height: 60px;
+      border-radius: 18px;
+      background: var(--yellow);
+      color: #050505;
+      font-size: 34px;
+      line-height: 1;
+      box-shadow: var(--glow-yellow);
+    }
+
+    .current-block {
+      text-align: center;
+      color: var(--yellow);
+      font-size: 24px;
+      font-weight: 700;
+      text-shadow: var(--glow-yellow);
+    }
+
+    .meeting-list {
+      border: 1px solid rgba(34, 177, 76, 0.7);
+      border-radius: 18px;
       overflow: hidden;
+      background: rgba(8, 9, 10, 0.92);
+      box-shadow: 0 0 20px rgba(34, 177, 76, 0.18);
+      min-height: 360px;
     }
 
     .block-header {
-      background: #222;
-      color: white;
-      padding: 12px 14px;
-      font-weight: bold;
+      padding: 14px 16px;
+      background: linear-gradient(90deg, rgba(34,177,76,0.35), rgba(243,212,0,0.18));
+      border-bottom: 1px solid rgba(34, 177, 76, 0.55);
+      color: var(--yellow);
+      font-size: 18px;
+      font-weight: 800;
+      text-shadow: 0 0 8px rgba(243, 212, 0, 0.45);
     }
 
     .meeting {
-      padding: 14px;
-      border-top: 1px solid #ddd;
+      padding: 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .meeting:last-child {
+      border-bottom: none;
     }
 
     .meeting-title {
-      font-weight: bold;
-      font-size: 17px;
-      margin-bottom: 6px;
+      font-size: 19px;
+      font-weight: 900;
+      letter-spacing: 0.4px;
+      color: #ffffff;
+      margin-bottom: 8px;
     }
 
     .meta {
-      color: #555;
-      font-size: 14px;
-      margin-bottom: 6px;
+      color: #e3e3e3;
+      font-size: 15px;
+      line-height: 1.45;
+      margin-bottom: 4px;
     }
 
     .join {
       display: inline-block;
-      margin-top: 8px;
-      padding: 8px 10px;
-      background: #0066cc;
-      color: white;
+      margin-top: 12px;
+      padding: 11px 14px;
+      border-radius: 14px;
+      background: var(--green);
+      color: #ffffff;
       text-decoration: none;
-      border-radius: 8px;
+      font-weight: 800;
+      box-shadow: var(--glow-green);
     }
 
     .empty {
-      background: white;
-      padding: 16px;
-      border-radius: 12px;
+      padding: 28px 18px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 17px;
     }
 
-    .small {
-      color: #666;
-      font-size: 13px;
+    .swipe-note {
+      color: #ffffff;
+      text-align: center;
+      font-size: 18px;
+      margin-top: 14px;
+      opacity: 0.9;
+    }
+
+    @media (max-width: 650px) {
+      body {
+        padding: 12px;
+      }
+
+      .title {
+        font-size: 28px;
+      }
+
+      .tabs {
+        grid-template-columns: repeat(4, 1fr);
+      }
+
+      .controls {
+        grid-template-columns: 1fr;
+      }
+
+      .search-row {
+        grid-template-columns: 1fr;
+      }
+
+      .arrow-btn {
+        width: 58px;
+        min-height: 54px;
+      }
+
+      .current-block {
+        font-size: 19px;
+      }
     }
   </style>
 </head>
 
 <body>
-  <div class="top">
-    <h1>Virtual NA Meeting Finder</h1>
-    <div class="small">
-      Shows virtual/phone NA meetings grouped into approximate 15-minute time blocks in your local timezone.
+  <div class="app">
+    <div class="header">
+      <h1 class="title">Find Meetings</h1>
+      <div class="subtitle">Virtual and phone NA meetings by time block</div>
     </div>
 
-    <div class="controls">
-      <select id="daySelect"></select>
-      <select id="timeSelect"></select>
-      <input id="searchBox" type="text" placeholder="Search name, format, info..." />
-      <button onclick="loadMeetings()">Refresh</button>
+    <div class="controls-card">
+      <div class="tabs">
+        <button class="tab active" data-day="now">Now</button>
+        <button class="tab" data-day="0">S</button>
+        <button class="tab" data-day="1">M</button>
+        <button class="tab" data-day="2">T</button>
+        <button class="tab" data-day="3">W</button>
+        <button class="tab" data-day="4">T</button>
+        <button class="tab" data-day="5">F</button>
+        <button class="tab" data-day="6">S</button>
+      </div>
+
+      <div class="controls">
+        <select id="daySelect"></select>
+        <select id="timeSelect"></select>
+      </div>
+
+      <div class="search-row">
+        <input id="searchBox" type="text" placeholder="Search name, format, info..." />
+        <button onclick="loadMeetings()">Refresh</button>
+      </div>
+
+      <p id="status" class="status">Loading meetings...</p>
     </div>
 
-    <p id="status" class="small">Loading meetings...</p>
+    <div class="time-nav">
+      <button class="arrow-btn" onclick="changeTime(-15)">‹</button>
+      <div id="currentBlock" class="current-block">Loading...</div>
+      <button class="arrow-btn" onclick="changeTime(15)">›</button>
+    </div>
+
+    <div id="results" class="meeting-list"></div>
+
+    <div class="swipe-note">← Tap arrows to change time →</div>
   </div>
-
-  <div id="results"></div>
 
   <script>
     const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -130,6 +332,17 @@
 
     function pad(n) {
       return String(n).padStart(2, "0");
+    }
+
+    function toDisplayTime(hhmm) {
+      const [h, m] = hhmm.split(":").map(Number);
+      const date = new Date();
+      date.setHours(h, m, 0, 0);
+
+      return date.toLocaleTimeString([], {
+        hour: "numeric",
+        minute: "2-digit"
+      });
     }
 
     function makeTimeBlocks() {
@@ -146,18 +359,12 @@
         select.appendChild(option);
       }
 
-      const now = new Date();
-      const rounded = Math.floor((now.getHours() * 60 + now.getMinutes()) / 15) * 15;
-      const h = Math.floor(rounded / 60);
-      const m = rounded % 60;
-      select.value = `${pad(h)}:${pad(m)}`;
+      setCurrentTimeBlock();
     }
 
     function makeDayOptions() {
       const select = document.getElementById("daySelect");
       select.innerHTML = "";
-
-      const today = new Date().getDay();
 
       dayNames.forEach((day, index) => {
         const option = document.createElement("option");
@@ -166,31 +373,79 @@
         select.appendChild(option);
       });
 
-      select.value = today;
+      select.value = new Date().getDay();
     }
 
-    function toDisplayTime(hhmm) {
-      const [h, m] = hhmm.split(":").map(Number);
-      const date = new Date();
-      date.setHours(h, m, 0, 0);
+    function setCurrentTimeBlock() {
+      const now = new Date();
+      const rounded = Math.floor((now.getHours() * 60 + now.getMinutes()) / 15) * 15;
+      const h = Math.floor(rounded / 60);
+      const m = rounded % 60;
 
-      return date.toLocaleTimeString([], {
-        hour: "numeric",
-        minute: "2-digit"
+      document.getElementById("daySelect").value = now.getDay();
+      document.getElementById("timeSelect").value = `${pad(h)}:${pad(m)}`;
+    }
+
+    function changeTime(amount) {
+      const timeSelect = document.getElementById("timeSelect");
+      const daySelect = document.getElementById("daySelect");
+
+      let [h, m] = timeSelect.value.split(":").map(Number);
+      let total = h * 60 + m + amount;
+      let day = Number(daySelect.value);
+
+      if (total < 0) {
+        total = 23 * 60 + 45;
+        day = (day + 6) % 7;
+      }
+
+      if (total >= 24 * 60) {
+        total = 0;
+        day = (day + 1) % 7;
+      }
+
+      const newH = Math.floor(total / 60);
+      const newM = total % 60;
+
+      daySelect.value = day;
+      timeSelect.value = `${pad(newH)}:${pad(newM)}`;
+
+      setActiveTab(day);
+      renderMeetings();
+    }
+
+    function setActiveTab(day) {
+      document.querySelectorAll(".tab").forEach(tab => {
+        tab.classList.remove("active");
+        if (tab.dataset.day === String(day)) {
+          tab.classList.add("active");
+        }
+      });
+    }
+
+    function setupTabs() {
+      document.querySelectorAll(".tab").forEach(tab => {
+        tab.addEventListener("click", () => {
+          if (tab.dataset.day === "now") {
+            setCurrentTimeBlock();
+            document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+            tab.classList.add("active");
+          } else {
+            document.getElementById("daySelect").value = tab.dataset.day;
+            setActiveTab(tab.dataset.day);
+          }
+
+          renderMeetings();
+        });
       });
     }
 
     function convertMeetingToLocal(meeting) {
-      const [h, m, s] = meeting.startTime.split(":").map(Number);
-
-      const now = new Date();
-      const localDate = new Date(now);
-
-      const sourceWeekday = meeting.weekday;
+      const [h, m] = meeting.startTime.split(":").map(Number);
 
       return {
         ...meeting,
-        localWeekday: sourceWeekday ? sourceWeekday - 1 : 0,
+        localWeekday: meeting.weekday ? meeting.weekday - 1 : 0,
         localMinutes: h * 60 + m,
         localTimeText: toDisplayTime(`${pad(h)}:${pad(m)}`)
       };
@@ -203,23 +458,29 @@
       return `${pad(h)}:${pad(m)}`;
     }
 
+    function updateCurrentBlockText() {
+      const day = Number(document.getElementById("daySelect").value);
+      const time = document.getElementById("timeSelect").value;
+      document.getElementById("currentBlock").textContent =
+        `${dayNames[day]}, at ${toDisplayTime(time)}`;
+    }
+
     function renderMeetings() {
       const results = document.getElementById("results");
       const day = Number(document.getElementById("daySelect").value);
       const selectedTime = document.getElementById("timeSelect").value;
       const search = document.getElementById("searchBox").value.toLowerCase().trim();
 
+      updateCurrentBlockText();
+
       const [selectedH, selectedM] = selectedTime.split(":").map(Number);
       const selectedMinutes = selectedH * 60 + selectedM;
-
-      const windowBefore = 0;
-      const windowAfter = 15;
 
       const filtered = allMeetings
         .map(convertMeetingToLocal)
         .filter(m => m.localWeekday === day)
-        .filter(m => m.localMinutes >= selectedMinutes - windowBefore)
-        .filter(m => m.localMinutes < selectedMinutes + windowAfter)
+        .filter(m => m.localMinutes >= selectedMinutes)
+        .filter(m => m.localMinutes < selectedMinutes + 15)
         .filter(m => {
           if (!search) return true;
 
@@ -250,7 +511,7 @@
 
       results.innerHTML = Object.entries(grouped)
         .map(([time, meetings]) => `
-          <div class="block">
+          <div>
             <div class="block-header">
               ${dayNames[day]} around ${toDisplayTime(time)} (${meetings.length})
             </div>
@@ -261,7 +522,7 @@
 
                 <div class="meta">
                   Starts: ${escapeHtml(m.localTimeText)}
-                  ${m.timeZone ? ` | Listed timezone: ${escapeHtml(m.timeZone)}` : ""}
+                  ${m.timeZone ? ` | Time zone: ${escapeHtml(m.timeZone)}` : ""}
                 </div>
 
                 ${m.formats ? `<div class="meta">Formats: ${escapeHtml(m.formats)}</div>` : ""}
@@ -298,7 +559,7 @@
       const results = document.getElementById("results");
 
       status.textContent = "Loading meetings...";
-      results.innerHTML = "";
+      results.innerHTML = `<div class="empty">Loading...</div>`;
 
       try {
         const response = await fetch("/api/meetings");
@@ -310,7 +571,7 @@
 
         allMeetings = data.meetings || [];
 
-        status.textContent = `Loaded ${allMeetings.length} virtual/phone meetings from ${data.source}.`;
+        status.textContent = `Loaded ${allMeetings.length} virtual/phone meetings.`;
 
         renderMeetings();
       } catch (error) {
@@ -322,18 +583,22 @@
     document.addEventListener("DOMContentLoaded", () => {
       makeDayOptions();
       makeTimeBlocks();
+      setupTabs();
 
-      document.getElementById("daySelect").addEventListener("change", renderMeetings);
+      document.getElementById("daySelect").addEventListener("change", () => {
+        setActiveTab(document.getElementById("daySelect").value);
+        renderMeetings();
+      });
+
       document.getElementById("timeSelect").addEventListener("change", renderMeetings);
       document.getElementById("searchBox").addEventListener("input", renderMeetings);
 
       loadMeetings();
     });
+
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/service-worker.js");
+    }
   </script>
-<script>
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("/service-worker.js");
-  }
-</script>
 </body>
 </html>
