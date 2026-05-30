@@ -526,7 +526,7 @@
 
       return {
         ...meeting,
-        localWeekday: meeting.weekday ? meeting.weekday - 1 : 0,
+        localWeekday: Number(meeting.weekday || 0),
         localMinutes: h * 60 + m,
         localTimeText: toDisplayTime(`${pad(h)}:${pad(m)}`)
       };
@@ -563,11 +563,14 @@
         .filter(m => {
           const haystack = [
             m.name,
+            m.source,
+            m.fellowship,
             m.formats,
             m.extra,
             m.phone,
             m.joinUrl,
             m.timeZone,
+            m.sourceTimeZone,
             dayNames[m.localWeekday],
             m.localTimeText
           ].join(" ").toLowerCase();
@@ -620,9 +623,10 @@
 
                   <div class="meta">
                     Starts: ${escapeHtml(m.localTimeText)}
-                    ${m.timeZone ? ` | Time zone: ${escapeHtml(m.timeZone)}` : ""}
+                    ${m.timeZone ? ` | Shown in: ${escapeHtml(m.timeZone)}` : ""}
                   </div>
 
+                  ${m.source ? `<div class="meta">Source: ${escapeHtml(m.source)}</div>` : ""}
                   ${m.formats ? `<div class="meta">Formats: ${escapeHtml(m.formats)}</div>` : ""}
                   ${m.phone ? `<div class="meta">Phone: ${escapeHtml(m.phone)}</div>` : ""}
                   ${m.extra ? `<div class="meta">${escapeHtml(m.extra)}</div>` : ""}
@@ -661,7 +665,8 @@
       results.innerHTML = `<div class="empty">Loading...</div>`;
 
       try {
-        const response = await fetch("/api/meetings");
+        const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "America/Detroit";
+        const response = await fetch(`/api/meetings?tz=${encodeURIComponent(userTimeZone)}`);
         const data = await response.json();
 
         if (!response.ok || data.error) {
@@ -670,7 +675,7 @@
 
         allMeetings = data.meetings || [];
 
-        status.textContent = `Loaded ${allMeetings.length} virtual/phone meetings.`;
+        status.textContent = `Loaded ${allMeetings.length} virtual/phone NA meetings. Times shown in ${data.targetTimeZone || userTimeZone}.`;
 
         renderMeetings();
       } catch (error) {
