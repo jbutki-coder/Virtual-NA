@@ -15,14 +15,11 @@
     :root {
       --bg: #050505;
       --panel: #111214;
-      --panel2: #18191c;
       --yellow: #f3d400;
-      --yellow-soft: rgba(243, 212, 0, 0.18);
       --green: #22b14c;
-      --green2: #39ff74;
       --text: #f5f5f5;
       --muted: #b9b9b9;
-      --border: rgba(243, 212, 0, 0.3);
+      --border: rgba(243, 212, 0, 0.32);
       --glow-yellow: 0 0 14px rgba(243, 212, 0, 0.7);
       --glow-green: 0 0 16px rgba(34, 177, 76, 0.7);
     }
@@ -50,7 +47,7 @@
 
     .hero {
       text-align: center;
-      padding: 18px 10px 18px;
+      padding: 18px 10px;
       margin-bottom: 18px;
     }
 
@@ -68,12 +65,10 @@
       margin: 0 0 14px;
       font-size: clamp(2rem, 4.5vw, 3.2rem);
       font-weight: 800;
-      line-height: 1.05;
       color: var(--yellow);
       text-shadow:
         0 0 8px rgba(243, 212, 0, 0.7),
         0 0 20px rgba(243, 212, 0, 0.35);
-      letter-spacing: 0.4px;
     }
 
     .disclaimer-box {
@@ -82,23 +77,17 @@
       padding: 14px 18px;
       border: 1px solid rgba(243, 212, 0, 0.48);
       border-radius: 18px;
-      background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.02));
+      background: rgba(255, 255, 255, 0.04);
       color: #f0f0f0;
       font-size: 14px;
       line-height: 1.55;
-      box-shadow:
-        0 0 14px rgba(243, 212, 0, 0.12),
-        inset 0 0 14px rgba(243, 212, 0, 0.035);
     }
 
     .disclaimer-box strong {
       color: var(--yellow);
-      text-shadow: 0 0 8px rgba(243, 212, 0, 0.45);
     }
 
-    .controls-card,
-    .progress-card {
+    .card {
       background: linear-gradient(180deg, rgba(28, 29, 32, 0.96), rgba(12, 13, 15, 0.96));
       border: 1px solid var(--border);
       border-radius: 20px;
@@ -109,54 +98,58 @@
       margin-bottom: 16px;
     }
 
-    .progress-card h2 {
-      margin: 0 0 6px;
+    .section-title {
+      margin: 0 0 8px;
       color: var(--yellow);
       font-size: 24px;
+      font-weight: 900;
       text-shadow: var(--glow-yellow);
     }
 
-    .progress-note {
+    .section-note {
       margin: 0 0 12px;
       color: var(--muted);
       font-size: 14px;
       line-height: 1.45;
     }
 
-    .progress-list {
-      border: 1px solid rgba(34, 177, 76, 0.55);
-      border-radius: 16px;
+    .progress-list,
+    .meeting-list {
+      border: 1px solid rgba(34, 177, 76, 0.7);
+      border-radius: 18px;
       overflow: hidden;
-      background: rgba(8, 9, 10, 0.88);
+      background: rgba(8, 9, 10, 0.92);
+      box-shadow: 0 0 20px rgba(34, 177, 76, 0.18);
     }
 
-    .progress-item {
-      padding: 14px 16px;
+    .meeting-list {
+      min-height: 360px;
+    }
+
+    .progress-item,
+    .meeting {
+      padding: 16px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
 
-    .progress-item:last-child {
+    .progress-item:last-child,
+    .meeting:last-child {
       border-bottom: none;
     }
 
+    .meeting-title,
     .progress-title {
-      font-size: 18px;
+      font-size: 19px;
       font-weight: 900;
-      margin-bottom: 6px;
       color: #ffffff;
+      margin-bottom: 8px;
     }
 
-    .progress-meta {
+    .meta {
       color: #e3e3e3;
-      font-size: 14px;
+      font-size: 15px;
       line-height: 1.45;
       margin-bottom: 4px;
-    }
-
-    .progress-empty {
-      padding: 18px;
-      color: var(--muted);
-      text-align: center;
     }
 
     .tabs {
@@ -176,7 +169,6 @@
       font-size: 15px;
       cursor: pointer;
       text-align: center;
-      box-shadow: inset 0 0 10px rgba(243, 212, 0, 0.04);
     }
 
     .tab.active {
@@ -269,15 +261,6 @@
       text-shadow: var(--glow-yellow);
     }
 
-    .meeting-list {
-      border: 1px solid rgba(34, 177, 76, 0.7);
-      border-radius: 18px;
-      overflow: hidden;
-      background: rgba(8, 9, 10, 0.92);
-      box-shadow: 0 0 20px rgba(34, 177, 76, 0.18);
-      min-height: 360px;
-    }
-
     .block-header {
       padding: 14px 16px;
       background: linear-gradient(90deg, rgba(34, 177, 76, 0.35), rgba(243, 212, 0, 0.18));
@@ -286,30 +269,6 @@
       font-size: 18px;
       font-weight: 800;
       text-shadow: 0 0 8px rgba(243, 212, 0, 0.45);
-    }
-
-    .meeting {
-      padding: 16px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    }
-
-    .meeting:last-child {
-      border-bottom: none;
-    }
-
-    .meeting-title {
-      font-size: 19px;
-      font-weight: 900;
-      letter-spacing: 0.4px;
-      color: #ffffff;
-      margin-bottom: 8px;
-    }
-
-    .meta {
-      color: #e3e3e3;
-      font-size: 15px;
-      line-height: 1.45;
-      margin-bottom: 4px;
     }
 
     .join {
@@ -346,7 +305,6 @@
 
       .main-logo {
         width: min(390px, 96%);
-        margin-bottom: 12px;
       }
 
       .hero h1 {
@@ -362,10 +320,7 @@
         grid-template-columns: repeat(4, 1fr);
       }
 
-      .controls {
-        grid-template-columns: 1fr;
-      }
-
+      .controls,
       .search-row {
         grid-template-columns: 1fr;
       }
@@ -396,17 +351,22 @@
       </div>
     </header>
 
-    <div class="progress-card">
-      <h2>Meetings in Progress</h2>
-      <p class="progress-note">
+    <section class="card">
+      <h2 class="section-title">Meetings in Progress</h2>
+      <p class="section-note">
         These virtual and hybrid NA meetings appear to be happening right now based on your device timezone.
       </p>
       <div id="progressList" class="progress-list">
-        <div class="progress-empty">Loading meetings in progress...</div>
+        <div class="empty">Loading meetings in progress...</div>
       </div>
-    </div>
+    </section>
 
-    <div class="controls-card">
+    <section class="card">
+      <h2 class="section-title">Find Meetings</h2>
+      <p class="section-note">
+        Use the day and time controls, arrows, or search bar to look ahead and find virtual or hybrid NA meetings.
+      </p>
+
       <div class="tabs">
         <button class="tab active" data-day="now">Now</button>
         <button class="tab" data-day="0">S</button>
@@ -429,7 +389,7 @@
       </div>
 
       <p id="status" class="status">Loading meetings...</p>
-    </div>
+    </section>
 
     <div class="time-nav">
       <button class="arrow-btn" onclick="changeTime(-15)">‹</button>
@@ -474,19 +434,10 @@
 
       let total = 0;
 
-      if (hours) {
-        total += Math.round(Number(hours[1]) * 60);
-      }
+      if (hours) total += Math.round(Number(hours[1]) * 60);
+      if (minutes) total += Number(minutes[1]);
 
-      if (minutes) {
-        total += Number(minutes[1]);
-      }
-
-      if (total > 0) {
-        return total;
-      }
-
-      return 90;
+      return total > 0 ? total : 90;
     }
 
     function makeTimeBlocks() {
@@ -497,6 +448,7 @@
         const h = Math.floor(minutes / 60);
         const m = minutes % 60;
         const value = `${pad(h)}:${pad(m)}`;
+
         const option = document.createElement("option");
         option.value = value;
         option.textContent = toDisplayTime(value);
@@ -620,48 +572,43 @@
         .map(convertMeetingToLocal)
         .filter(m => {
           const duration = durationToMinutes(m.duration);
-          const start = m.localMinutes;
-          const end = start + duration;
-
-          if (m.localWeekday !== currentDay) {
-            return false;
-          }
-
-          return currentMinutes >= start && currentMinutes < end;
+          return (
+            m.localWeekday === currentDay &&
+            currentMinutes >= m.localMinutes &&
+            currentMinutes < m.localMinutes + duration
+          );
         })
         .sort((a, b) => a.localMinutes - b.localMinutes || a.name.localeCompare(b.name));
 
       if (!inProgress.length) {
-        progressList.innerHTML = `<div class="progress-empty">No virtual or hybrid NA meetings appear to be in progress right now.</div>`;
+        progressList.innerHTML = `<div class="empty">No virtual or hybrid NA meetings appear to be in progress right now.</div>`;
         return;
       }
 
-      progressList.innerHTML = inProgress
-        .map(m => {
-          const duration = durationToMinutes(m.duration);
-          const endMinutes = m.localMinutes + duration;
-          const endHour = Math.floor((endMinutes % (24 * 60)) / 60);
-          const endMinute = endMinutes % 60;
-          const endTime = toDisplayTime(`${pad(endHour)}:${pad(endMinute)}`);
+      progressList.innerHTML = inProgress.map(m => {
+        const duration = durationToMinutes(m.duration);
+        const endMinutes = m.localMinutes + duration;
+        const endHour = Math.floor((endMinutes % (24 * 60)) / 60);
+        const endMinute = endMinutes % 60;
+        const endTime = toDisplayTime(`${pad(endHour)}:${pad(endMinute)}`);
 
-          return `
-            <div class="progress-item">
-              <div class="progress-title">${escapeHtml(m.name)}</div>
-              <div class="progress-meta">
-                Started: ${escapeHtml(m.localTimeText)} | Approx. ends: ${escapeHtml(endTime)}
-                ${m.timeZone ? ` | Shown in: ${escapeHtml(m.timeZone)}` : ""}
-              </div>
-              ${m.source ? `<div class="progress-meta">Source: ${escapeHtml(m.source)}</div>` : ""}
-              ${m.formats ? `<div class="progress-meta">Formats: ${escapeHtml(m.formats)}</div>` : ""}
-              ${m.joinUrl ? `
-                <a class="join" href="${escapeAttr(m.joinUrl)}" target="_blank" rel="noopener">
-                  Join Meeting
-                </a>
-              ` : ""}
+        return `
+          <div class="progress-item">
+            <div class="progress-title">${escapeHtml(m.name)}</div>
+            <div class="meta">
+              Started: ${escapeHtml(m.localTimeText)} | Approx. ends: ${escapeHtml(endTime)}
+              ${m.timeZone ? ` | Shown in: ${escapeHtml(m.timeZone)}` : ""}
             </div>
-          `;
-        })
-        .join("");
+            ${m.source ? `<div class="meta">Source: ${escapeHtml(m.source)}</div>` : ""}
+            ${m.formats ? `<div class="meta">Formats: ${escapeHtml(m.formats)}</div>` : ""}
+            ${m.joinUrl ? `
+              <a class="join" href="${escapeAttr(m.joinUrl)}" target="_blank" rel="noopener">
+                Join Meeting
+              </a>
+            ` : ""}
+          </div>
+        `;
+      }).join("");
     }
 
     function renderMeetings() {
@@ -723,41 +670,39 @@
         grouped[key].push(meeting);
       });
 
-      results.innerHTML = Object.entries(grouped)
-        .map(([key, meetings]) => {
-          const [weekday, time] = key.split("-");
+      results.innerHTML = Object.entries(grouped).map(([key, meetings]) => {
+        const [weekday, time] = key.split("-");
 
-          return `
-            <div>
-              <div class="block-header">
-                ${search ? "Search result: " : ""}
-                ${dayNames[Number(weekday)]} around ${toDisplayTime(time)} (${meetings.length})
-              </div>
-
-              ${meetings.map(m => `
-                <div class="meeting">
-                  <div class="meeting-title">${escapeHtml(m.name)}</div>
-
-                  <div class="meta">
-                    Starts: ${escapeHtml(m.localTimeText)}
-                    ${m.timeZone ? ` | Shown in: ${escapeHtml(m.timeZone)}` : ""}
-                  </div>
-
-                  ${m.source ? `<div class="meta">Source: ${escapeHtml(m.source)}</div>` : ""}
-                  ${m.formats ? `<div class="meta">Formats: ${escapeHtml(m.formats)}</div>` : ""}
-                  ${m.extra ? `<div class="meta">${escapeHtml(m.extra)}</div>` : ""}
-
-                  ${m.joinUrl ? `
-                    <a class="join" href="${escapeAttr(m.joinUrl)}" target="_blank" rel="noopener">
-                      Join Meeting
-                    </a>
-                  ` : ""}
-                </div>
-              `).join("")}
+        return `
+          <div>
+            <div class="block-header">
+              ${search ? "Search result: " : ""}
+              ${dayNames[Number(weekday)]} around ${toDisplayTime(time)} (${meetings.length})
             </div>
-          `;
-        })
-        .join("");
+
+            ${meetings.map(m => `
+              <div class="meeting">
+                <div class="meeting-title">${escapeHtml(m.name)}</div>
+
+                <div class="meta">
+                  Starts: ${escapeHtml(m.localTimeText)}
+                  ${m.timeZone ? ` | Shown in: ${escapeHtml(m.timeZone)}` : ""}
+                </div>
+
+                ${m.source ? `<div class="meta">Source: ${escapeHtml(m.source)}</div>` : ""}
+                ${m.formats ? `<div class="meta">Formats: ${escapeHtml(m.formats)}</div>` : ""}
+                ${m.extra ? `<div class="meta">${escapeHtml(m.extra)}</div>` : ""}
+
+                ${m.joinUrl ? `
+                  <a class="join" href="${escapeAttr(m.joinUrl)}" target="_blank" rel="noopener">
+                    Join Meeting
+                  </a>
+                ` : ""}
+              </div>
+            `).join("")}
+          </div>
+        `;
+      }).join("");
     }
 
     function escapeHtml(value) {
@@ -780,7 +725,7 @@
 
       status.textContent = "Loading meetings...";
       results.innerHTML = `<div class="empty">Loading...</div>`;
-      progressList.innerHTML = `<div class="progress-empty">Loading meetings in progress...</div>`;
+      progressList.innerHTML = `<div class="empty">Loading meetings in progress...</div>`;
 
       try {
         const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "America/Detroit";
@@ -800,7 +745,7 @@
       } catch (error) {
         status.textContent = "Error loading meetings.";
         results.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
-        progressList.innerHTML = `<div class="progress-empty">${escapeHtml(error.message)}</div>`;
+        progressList.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
       }
     }
 
@@ -819,9 +764,7 @@
 
       loadMeetings();
 
-      setInterval(() => {
-        renderInProgress();
-      }, 60000);
+      setInterval(renderInProgress, 60000);
     });
 
     if ("serviceWorker" in navigator) {
