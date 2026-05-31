@@ -17,11 +17,12 @@
       --panel: #111214;
       --panel2: #18191c;
       --yellow: #f3d400;
+      --yellow-soft: rgba(243, 212, 0, 0.18);
       --green: #22b14c;
       --green2: #39ff74;
       --text: #f5f5f5;
       --muted: #b9b9b9;
-      --border: rgba(243, 212, 0, 0.25);
+      --border: rgba(243, 212, 0, 0.3);
       --glow-yellow: 0 0 14px rgba(243, 212, 0, 0.7);
       --glow-green: 0 0 16px rgba(34, 177, 76, 0.7);
     }
@@ -47,54 +48,63 @@
       margin: 0 auto;
     }
 
-    .header {
+    .hero {
       text-align: center;
-      padding: 18px 10px 16px;
+      padding: 18px 10px 18px;
+      margin-bottom: 18px;
     }
 
-    .na-mark-wrap {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin: 4px auto 18px;
+    .main-logo {
+      display: block;
+      width: min(520px, 94%);
+      height: auto;
+      margin: 0 auto 14px;
+      filter:
+        drop-shadow(0 0 10px rgba(243, 212, 0, 0.35))
+        drop-shadow(0 0 22px rgba(34, 177, 76, 0.16));
     }
 
-    .na-mark {
-      width: 132px;
-      height: 132px;
-      filter: drop-shadow(0 0 14px rgba(243, 212, 0, 0.75));
-    }
-
-    .title {
-      margin: 0;
-      font-size: 34px;
-      line-height: 1.1;
-      letter-spacing: 0.5px;
+    .hero h1 {
+      margin: 0 0 14px;
+      font-size: clamp(2rem, 4.5vw, 3.2rem);
+      font-weight: 800;
+      line-height: 1.05;
       color: var(--yellow);
-      text-shadow: var(--glow-yellow);
+      text-shadow:
+        0 0 8px rgba(243, 212, 0, 0.7),
+        0 0 20px rgba(243, 212, 0, 0.35);
+      letter-spacing: 0.4px;
     }
 
-    .subtitle {
-      margin-top: 8px;
-      color: var(--muted);
-      font-size: 15px;
+    .disclaimer-box {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 14px 18px;
+      border: 1px solid rgba(243, 212, 0, 0.48);
+      border-radius: 18px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.02));
+      color: #f0f0f0;
+      font-size: 14px;
+      line-height: 1.55;
+      box-shadow:
+        0 0 14px rgba(243, 212, 0, 0.12),
+        inset 0 0 14px rgba(243, 212, 0, 0.035);
     }
 
-    .na-note {
-      margin: 10px auto 0;
-      max-width: 650px;
-      color: #eeeeee;
-      font-size: 13px;
-      line-height: 1.45;
-      opacity: 0.85;
+    .disclaimer-box strong {
+      color: var(--yellow);
+      text-shadow: 0 0 8px rgba(243, 212, 0, 0.45);
     }
 
     .controls-card {
       background: linear-gradient(180deg, rgba(28, 29, 32, 0.96), rgba(12, 13, 15, 0.96));
       border: 1px solid var(--border);
-      border-radius: 18px;
+      border-radius: 20px;
       padding: 16px;
-      box-shadow: 0 0 24px rgba(0, 0, 0, 0.65);
+      box-shadow:
+        0 0 24px rgba(0, 0, 0, 0.65),
+        0 0 14px rgba(243, 212, 0, 0.08);
       margin-bottom: 16px;
     }
 
@@ -155,6 +165,10 @@
       box-shadow: var(--glow-yellow);
     }
 
+    input::placeholder {
+      color: rgba(245, 245, 245, 0.5);
+    }
+
     button {
       border: none;
       border-radius: 14px;
@@ -200,7 +214,7 @@
       text-align: center;
       color: var(--yellow);
       font-size: 24px;
-      font-weight: 700;
+      font-weight: 800;
       text-shadow: var(--glow-yellow);
     }
 
@@ -279,13 +293,18 @@
         padding: 12px;
       }
 
-      .na-mark {
-        width: 112px;
-        height: 112px;
+      .main-logo {
+        width: min(390px, 96%);
+        margin-bottom: 12px;
       }
 
-      .title {
+      .hero h1 {
         font-size: 28px;
+      }
+
+      .disclaimer-box {
+        font-size: 13px;
+        padding: 12px 14px;
       }
 
       .tabs {
@@ -314,62 +333,17 @@
 
 <body>
   <div class="app">
-    <div class="header">
-      <div class="na-mark-wrap" aria-hidden="true">
-        <svg class="na-mark" viewBox="0 0 140 140" role="img">
-          <defs>
-            <filter id="yellowGlow" x="-40%" y="-40%" width="180%" height="180%">
-              <feGaussianBlur stdDeviation="4" result="blur"/>
-              <feMerge>
-                <feMergeNode in="blur"/>
-                <feMergeNode in="SourceGraphic"/>
-              </feMerge>
-            </filter>
-            <filter id="greenGlow" x="-40%" y="-40%" width="180%" height="180%">
-              <feGaussianBlur stdDeviation="3" result="blur"/>
-              <feMerge>
-                <feMergeNode in="blur"/>
-                <feMergeNode in="SourceGraphic"/>
-              </feMerge>
-            </filter>
-          </defs>
+    <header class="hero">
+      <img src="/logo.png" alt="Virtual Meeting Finder" class="main-logo" />
 
-          <polygon points="70,6 134,70 70,134 6,70"
-                   fill="rgba(243, 212, 0, 0.06)"
-                   stroke="#f3d400"
-                   stroke-width="4"
-                   filter="url(#yellowGlow)" />
+      <h1>Virtual NA Meeting Finder</h1>
 
-          <polygon points="70,28 112,70 70,112 28,70"
-                   fill="rgba(34, 177, 76, 0.08)"
-                   stroke="#22b14c"
-                   stroke-width="4"
-                   filter="url(#greenGlow)" />
-
-          <circle cx="70" cy="70" r="28"
-                  fill="#050505"
-                  stroke="#ffffff"
-                  stroke-width="3" />
-
-          <text x="70"
-                y="78"
-                text-anchor="middle"
-                font-size="28"
-                font-family="Arial, Helvetica, sans-serif"
-                font-weight="900"
-                fill="#f3d400"
-                letter-spacing="1">
-            NA
-          </text>
-        </svg>
+      <div class="disclaimer-box">
+        <strong>Disclaimer:</strong> This is not an official Narcotics Anonymous virtual meeting finder.
+        It was built in loving service by a trusted servant to help addicts find virtual and hybrid NA meetings more easily.
+        Phone-only meetings are not included. Meeting information may change, so please verify details before attending.
       </div>
-
-      <h1 class="title">Virtual NA Meeting Finder</h1>
-      <div class="subtitle">Find online and phone Narcotics Anonymous meetings by time block</div>
-      <div class="na-note">
-        Search virtual and phone NA meetings by day and time. Meeting information may change, so please verify details before attending.
-      </div>
-    </div>
+    </header>
 
     <div class="controls-card">
       <div class="tabs">
@@ -389,7 +363,7 @@
       </div>
 
       <div class="search-row">
-        <input id="searchBox" type="text" placeholder="Search meeting name, format, info..." />
+        <input id="searchBox" type="text" placeholder="Search meeting name, format, source, info..." />
         <button onclick="loadMeetings()">Refresh</button>
       </div>
 
@@ -567,7 +541,6 @@
             m.fellowship,
             m.formats,
             m.extra,
-            m.phone,
             m.joinUrl,
             m.timeZone,
             m.sourceTimeZone,
@@ -594,7 +567,7 @@
       if (!filtered.length) {
         results.innerHTML = search
           ? `<div class="empty">No meetings found matching “${escapeHtml(search)}”.</div>`
-          : `<div class="empty">No meetings found for this 15-minute block.</div>`;
+          : `<div class="empty">No virtual or hybrid meetings found for this 15-minute block.</div>`;
         return;
       }
 
@@ -628,7 +601,6 @@
 
                   ${m.source ? `<div class="meta">Source: ${escapeHtml(m.source)}</div>` : ""}
                   ${m.formats ? `<div class="meta">Formats: ${escapeHtml(m.formats)}</div>` : ""}
-                  ${m.phone ? `<div class="meta">Phone: ${escapeHtml(m.phone)}</div>` : ""}
                   ${m.extra ? `<div class="meta">${escapeHtml(m.extra)}</div>` : ""}
 
                   ${m.joinUrl ? `
@@ -675,7 +647,8 @@
 
         allMeetings = data.meetings || [];
 
-        status.textContent = `Loaded ${allMeetings.length} virtual/phone NA meetings. Times shown in ${data.targetTimeZone || userTimeZone}.`;
+        status.textContent =
+          `Loaded ${allMeetings.length} virtual/hybrid NA meetings. Times shown in ${data.targetTimeZone || userTimeZone}.`;
 
         renderMeetings();
       } catch (error) {
