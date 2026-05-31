@@ -97,7 +97,8 @@
       text-shadow: 0 0 8px rgba(243, 212, 0, 0.45);
     }
 
-    .controls-card {
+    .controls-card,
+    .progress-card {
       background: linear-gradient(180deg, rgba(28, 29, 32, 0.96), rgba(12, 13, 15, 0.96));
       border: 1px solid var(--border);
       border-radius: 20px;
@@ -106,6 +107,56 @@
         0 0 24px rgba(0, 0, 0, 0.65),
         0 0 14px rgba(243, 212, 0, 0.08);
       margin-bottom: 16px;
+    }
+
+    .progress-card h2 {
+      margin: 0 0 6px;
+      color: var(--yellow);
+      font-size: 24px;
+      text-shadow: var(--glow-yellow);
+    }
+
+    .progress-note {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .progress-list {
+      border: 1px solid rgba(34, 177, 76, 0.55);
+      border-radius: 16px;
+      overflow: hidden;
+      background: rgba(8, 9, 10, 0.88);
+    }
+
+    .progress-item {
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .progress-item:last-child {
+      border-bottom: none;
+    }
+
+    .progress-title {
+      font-size: 18px;
+      font-weight: 900;
+      margin-bottom: 6px;
+      color: #ffffff;
+    }
+
+    .progress-meta {
+      color: #e3e3e3;
+      font-size: 14px;
+      line-height: 1.45;
+      margin-bottom: 4px;
+    }
+
+    .progress-empty {
+      padding: 18px;
+      color: var(--muted);
+      text-align: center;
     }
 
     .tabs {
@@ -345,6 +396,16 @@
       </div>
     </header>
 
+    <div class="progress-card">
+      <h2>Meetings in Progress</h2>
+      <p class="progress-note">
+        These virtual and hybrid NA meetings appear to be happening right now based on your device timezone.
+      </p>
+      <div id="progressList" class="progress-list">
+        <div class="progress-empty">Loading meetings in progress...</div>
+      </div>
+    </div>
+
     <div class="controls-card">
       <div class="tabs">
         <button class="tab active" data-day="now">Now</button>
@@ -398,6 +459,34 @@
         hour: "numeric",
         minute: "2-digit"
       });
+    }
+
+    function durationToMinutes(value) {
+      const text = String(value || "").toLowerCase();
+
+      const hms = text.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+      if (hms) {
+        return Number(hms[1]) * 60 + Number(hms[2]);
+      }
+
+      const hours = text.match(/(\d+(?:\.\d+)?)\s*h/);
+      const minutes = text.match(/(\d+)\s*m/);
+
+      let total = 0;
+
+      if (hours) {
+        total += Math.round(Number(hours[1]) * 60);
+      }
+
+      if (minutes) {
+        total += Number(minutes[1]);
+      }
+
+      if (total > 0) {
+        return total;
+      }
+
+      return 90;
     }
 
     function makeTimeBlocks() {
@@ -521,6 +610,60 @@
         `${dayNames[day]}, at ${toDisplayTime(time)}`;
     }
 
+    function renderInProgress() {
+      const progressList = document.getElementById("progressList");
+      const now = new Date();
+      const currentDay = now.getDay();
+      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+      const inProgress = allMeetings
+        .map(convertMeetingToLocal)
+        .filter(m => {
+          const duration = durationToMinutes(m.duration);
+          const start = m.localMinutes;
+          const end = start + duration;
+
+          if (m.localWeekday !== currentDay) {
+            return false;
+          }
+
+          return currentMinutes >= start && currentMinutes < end;
+        })
+        .sort((a, b) => a.localMinutes - b.localMinutes || a.name.localeCompare(b.name));
+
+      if (!inProgress.length) {
+        progressList.innerHTML = `<div class="progress-empty">No virtual or hybrid NA meetings appear to be in progress right now.</div>`;
+        return;
+      }
+
+      progressList.innerHTML = inProgress
+        .map(m => {
+          const duration = durationToMinutes(m.duration);
+          const endMinutes = m.localMinutes + duration;
+          const endHour = Math.floor((endMinutes % (24 * 60)) / 60);
+          const endMinute = endMinutes % 60;
+          const endTime = toDisplayTime(`${pad(endHour)}:${pad(endMinute)}`);
+
+          return `
+            <div class="progress-item">
+              <div class="progress-title">${escapeHtml(m.name)}</div>
+              <div class="progress-meta">
+                Started: ${escapeHtml(m.localTimeText)} | Approx. ends: ${escapeHtml(endTime)}
+                ${m.timeZone ? ` | Shown in: ${escapeHtml(m.timeZone)}` : ""}
+              </div>
+              ${m.source ? `<div class="progress-meta">Source: ${escapeHtml(m.source)}</div>` : ""}
+              ${m.formats ? `<div class="progress-meta">Formats: ${escapeHtml(m.formats)}</div>` : ""}
+              ${m.joinUrl ? `
+                <a class="join" href="${escapeAttr(m.joinUrl)}" target="_blank" rel="noopener">
+                  Join Meeting
+                </a>
+              ` : ""}
+            </div>
+          `;
+        })
+        .join("");
+    }
+
     function renderMeetings() {
       const results = document.getElementById("results");
       const day = Number(document.getElementById("daySelect").value);
@@ -528,6 +671,7 @@
       const search = document.getElementById("searchBox").value.toLowerCase().trim();
 
       updateCurrentBlockText();
+      renderInProgress();
 
       const [selectedH, selectedM] = selectedTime.split(":").map(Number);
       const selectedMinutes = selectedH * 60 + selectedM;
@@ -632,9 +776,11 @@
     async function loadMeetings() {
       const status = document.getElementById("status");
       const results = document.getElementById("results");
+      const progressList = document.getElementById("progressList");
 
       status.textContent = "Loading meetings...";
       results.innerHTML = `<div class="empty">Loading...</div>`;
+      progressList.innerHTML = `<div class="progress-empty">Loading meetings in progress...</div>`;
 
       try {
         const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "America/Detroit";
@@ -654,6 +800,7 @@
       } catch (error) {
         status.textContent = "Error loading meetings.";
         results.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
+        progressList.innerHTML = `<div class="progress-empty">${escapeHtml(error.message)}</div>`;
       }
     }
 
@@ -671,6 +818,10 @@
       document.getElementById("searchBox").addEventListener("input", renderMeetings);
 
       loadMeetings();
+
+      setInterval(() => {
+        renderInProgress();
+      }, 60000);
     });
 
     if ("serviceWorker" in navigator) {
