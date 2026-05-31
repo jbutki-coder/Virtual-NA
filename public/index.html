@@ -87,6 +87,54 @@
       color: var(--yellow);
     }
 
+    .call-card {
+      max-width: 880px;
+      margin: 16px auto 0;
+      padding: 16px;
+      border: 1px solid rgba(34, 177, 76, 0.65);
+      border-radius: 20px;
+      background:
+        linear-gradient(180deg, rgba(34, 177, 76, 0.10), rgba(255, 255, 255, 0.03));
+      box-shadow:
+        0 0 18px rgba(34, 177, 76, 0.18),
+        inset 0 0 12px rgba(34, 177, 76, 0.05);
+    }
+
+    .call-title {
+      color: var(--yellow);
+      font-size: 22px;
+      font-weight: 900;
+      margin: 0 0 8px;
+      text-shadow: var(--glow-yellow);
+    }
+
+    .call-note {
+      color: #e6e6e6;
+      font-size: 14px;
+      line-height: 1.45;
+      margin: 0 0 12px;
+    }
+
+    .call-actions {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .call-button {
+      width: 100%;
+      background: var(--green);
+      color: #ffffff;
+      box-shadow: var(--glow-green);
+    }
+
+    .call-status {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+      min-height: 20px;
+    }
+
     .card {
       background: linear-gradient(180deg, rgba(28, 29, 32, 0.96), rgba(12, 13, 15, 0.96));
       border: 1px solid var(--border);
@@ -342,6 +390,17 @@
         It was built in loving service by a trusted servant to help addicts find virtual and hybrid NA meetings more easily.
         Phone-only meetings are not included. Meeting information may change, so please verify details before attending.
       </div>
+
+      <div class="call-card">
+        <h2 class="call-title">Need to Talk to an Addict?</h2>
+        <p class="call-note">
+          Tap below to find the nearest NA helpline from the available helpline list. Your browser may ask for location permission.
+        </p>
+        <div class="call-actions">
+          <button id="callNaButton" class="call-button" onclick="handleCallNaNow()">Call NA Now</button>
+          <div id="callStatus" class="call-status"></div>
+        </div>
+      </div>
     </header>
 
     <section class="card">
@@ -389,8 +448,10 @@
     const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     const minutesInDay = 24 * 60;
     const minutesInWeek = 7 * minutesInDay;
+    const nearbyMiles = 250;
 
     let allMeetings = [];
+    let allHelplines = [];
     let mode = "now";
 
     function pad(n) {
@@ -805,6 +866,190 @@
       }
     }
 
+    async function fetchJsonFile(url) {
+      try {
+        const response = await fetch(url, { cache: "no-store" });
+
+        if (!response.ok) {
+          return [];
+        }
+
+        const data = await response.json();
+
+        return Array.isArray(data) ? data : [];
+      } catch {
+        return [];
+      }
+    }
+
+    async function loadHelplines() {
+      const usHelplines = await fetchJsonFile("/helplines.json");
+      const internationalHelplines = await fetchJsonFile("/international-helplines.json");
+
+      allHelplines = [...usHelplines, ...internationalHelplines]
+        .filter(h => h && h.phone && Number.isFinite(Number(h.lat)) && Number.isFinite(Number(h.lng)));
+
+      return allHelplines;
+    }
+
+    function getBrowserLanguages() {
+      const languages = navigator.languages && navigator.languages.length
+        ? navigator.languages
+        : [navigator.language || "en"];
+
+      return languages
+        .map(lang => String(lang).toLowerCase().split("-")[0])
+        .filter(Boolean);
+    }
+
+    function helplineMatchesLanguage(helpline, preferredLanguages) {
+      const helplineLanguages = Array.isArray(helpline.languages)
+        ? helpline.languages.map(lang => String(lang).toLowerCase().split("-")[0])
+        : ["en"];
+
+      return preferredLanguages.some(lang => helplineLanguages.includes(lang));
+    }
+
+    function distanceMiles(lat1, lng1, lat2, lng2) {
+      const radius = 3958.8;
+      const toRadians = degrees => degrees * Math.PI / 180;
+
+      const dLat = toRadians(lat2 - lat1);
+      const dLng = toRadians(lng2 - lng1);
+
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(toRadians(lat1)) *
+        Math.cos(toRadians(lat2)) *
+        Math.sin(dLng / 2) *
+        Math.sin(dLng / 2);
+
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+      return radius * c;
+    }
+
+    function sortByDistance(helplines, lat, lng) {
+      return helplines
+        .map(h => ({
+          ...h,
+          distance: distanceMiles(lat, lng, Number(h.lat), Number(h.lng))
+        }))
+        .sort((a, b) => a.distance - b.distance);
+    }
+
+    function normalizePhoneForTel(phone) {
+      return String(phone || "").replace(/[^\d+]/g, "");
+    }
+
+    function callHelpline(helpline, reason) {
+      const button = document.getElementById("callNaButton");
+      const status = document.getElementById("callStatus");
+      const phone = normalizePhoneForTel(helpline.phone);
+
+      if (!phone) {
+        status.textContent = "No usable helpline number was found.";
+        button.textContent = "Call NA Now";
+        return;
+      }
+
+      button.textContent = `Calling ${helpline.displayPhone || phone}`;
+      status.textContent =
+        `${reason}: ${helpline.name} (${helpline.area || helpline.country || "NA helpline"}) ${helpline.displayPhone || phone}`;
+
+      window.location.href = `tel:${phone}`;
+    }
+
+    function chooseByLanguageOnly(helplines) {
+      const preferredLanguages = getBrowserLanguages();
+
+      const sameLanguage = helplines.filter(h =>
+        helplineMatchesLanguage(h, preferredLanguages)
+      );
+
+      if (sameLanguage.length) {
+        return {
+          helpline: sameLanguage[0],
+          reason: "Matched by your browser language"
+        };
+      }
+
+      return {
+        helpline: helplines[0],
+        reason: "Nearest language match was not available, using general fallback"
+      };
+    }
+
+    async function handleCallNaNow() {
+      const button = document.getElementById("callNaButton");
+      const status = document.getElementById("callStatus");
+
+      button.textContent = "Finding NA helpline...";
+      status.textContent = "Checking helpline list...";
+
+      const helplines = allHelplines.length ? allHelplines : await loadHelplines();
+
+      if (!helplines.length) {
+        button.textContent = "Call NA Now";
+        status.textContent = "No helpline list was found. Make sure public/helplines.json is uploaded.";
+        return;
+      }
+
+      const languageFallback = () => {
+        const result = chooseByLanguageOnly(helplines);
+        callHelpline(result.helpline, result.reason);
+      };
+
+      if (!navigator.geolocation) {
+        languageFallback();
+        return;
+      }
+
+      status.textContent = "Allow location access to find the nearest NA helpline.";
+
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          const preferredLanguages = getBrowserLanguages();
+
+          const byDistance = sortByDistance(helplines, lat, lng);
+          const nearest = byDistance[0];
+
+          if (nearest && nearest.distance <= nearbyMiles) {
+            callHelpline(nearest, `Nearest available NA helpline, about ${Math.round(nearest.distance)} miles away`);
+            return;
+          }
+
+          const sameLanguageByDistance = byDistance.filter(h =>
+            helplineMatchesLanguage(h, preferredLanguages)
+          );
+
+          if (sameLanguageByDistance.length) {
+            const match = sameLanguageByDistance[0];
+            callHelpline(match, `No nearby helpline found, matched by language, about ${Math.round(match.distance)} miles away`);
+            return;
+          }
+
+          if (nearest) {
+            callHelpline(nearest, `No language match found, using nearest available helpline, about ${Math.round(nearest.distance)} miles away`);
+            return;
+          }
+
+          languageFallback();
+        },
+        () => {
+          status.textContent = "Location was not allowed. Matching by browser language instead.";
+          languageFallback();
+        },
+        {
+          enableHighAccuracy: false,
+          timeout: 10000,
+          maximumAge: 300000
+        }
+      );
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
       makeDayOptions();
       makeTimeBlocks();
@@ -825,6 +1070,7 @@
       document.getElementById("searchBox").addEventListener("input", renderMeetings);
 
       loadMeetings();
+      loadHelplines();
 
       setInterval(() => {
         if (mode === "now") {
