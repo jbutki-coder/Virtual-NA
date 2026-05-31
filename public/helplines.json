@@ -1,0 +1,386 @@
+[
+  {
+    "name": "Michigan Region NA Helpline",
+    "phone": "8002304085",
+    "displayPhone": "800-230-4085",
+    "area": "Michigan Region",
+    "lat": 44.3148,
+    "lng": -85.6024,
+    "languages": [
+      "en"
+    ],
+    "sourceUrl": "https://michigan-na.org/michigan-region/"
+  },
+  {
+    "name": "Metro Detroit Region NA Helpline",
+    "phone": "2485437200",
+    "displayPhone": "248-543-7200",
+    "area": "Metro Detroit, Michigan",
+    "lat": 42.3314,
+    "lng": -83.0458,
+    "languages": [
+      "en"
+    ],
+    "sourceUrl": "https://michigan-na.org/metro-detroit-region/helpline/"
+  },
+  {
+    "name": "Ohio Region NA Help Line",
+    "phone": "8005874232",
+    "displayPhone": "1-800-587-4232",
+    "area": "Ohio Region",
+    "lat": 40.4173,
+    "lng": -82.9071,
+    "languages": [
+      "en"
+    ],
+    "sourceUrl": "https://wordpress.naohio.org/contact-us/"
+  },
+  {
+    "name": "Arizona Region NA Statewide Phoneline",
+    "phone": "8449912962",
+    "displayPhone": "844-991-2962",
+    "area": "Arizona Region",
+    "lat": 34.0489,
+    "lng": -111.0937,
+    "languages": [
+      "en",
+      "es"
+    ],
+    "sourceUrl": "https://arizona-na.org/arizona-na-statewide-phoneline/"
+  },
+  {
+    "name": "North Carolina Region NA Statewide Phone/Text Line",
+    "phone": "8552276262",
+    "displayPhone": "1-855-227-6262",
+    "area": "North Carolina Region",
+    "lat": 35.7596,
+    "lng": -79.0193,
+    "languages": [
+      "en"
+    ],
+    "sourceUrl": "https://ncregion-na.org/new-to-na/"
+  },
+  {
+    "name": "New Jersey Statewide NA Helpline",
+    "phone": "8009920401",
+    "displayPhone": "800-992-0401",
+    "area": "New Jersey",
+    "lat": 40.0583,
+    "lng": -74.4057,
+    "languages": [
+      "en"
+    ],
+    "sourceUrl": "https://www.nanj.org/service-information/about-the-statewide-helpline/"
+  },
+  {
+    "name": "Free State Region NA 24 Hour Helpline",
+    "phone": "8003173222",
+    "displayPhone": "1-800-317-3222",
+    "area": "Maryland, Delaware, and nearby areas",
+    "lat": 39.2904,
+    "lng": -76.6122,
+    "languages": [
+      "en"
+    ],
+    "sourceUrl": "https://freestatena.org/"
+  },
+  {
+    "name": "Central Atlantic Region NA 24 Hour Hotline",
+    "phone": "8007771515",
+    "displayPhone": "1-800-777-1515",
+    "area": "Central Atlantic Region",
+    "lat": 37.4316,
+    "lng": -78.6569,
+    "languages": [
+      "en"
+    ],
+    "sourceUrl": "https://car-na.org/meetings-2/"
+  },
+  {
+    "name": "Southern California Region NA Helpline",
+    "phone": "8008632962",
+    "displayPhone": "1-800-863-2962",
+    "area": "Southern California Region",
+    "lat": 34.0522,
+    "lng": -118.2437,
+    "languages": [
+      "en"
+    ],
+    "sourceUrl": "https://todayna.org/todaynawpdocs/SCRNA_Regional_Directory_sml.pdf"
+  },
+  {
+    "name": "Southern California Region NA Spanish Helpline",
+    "phone": "8886224672",
+    "displayPhone": "1-888-622-4672",
+    "area": "Southern California Spanish-speaking helpline",
+    "lat": 34.0522,
+    "lng": -118.2437,
+    "languages": [
+      "es"
+    ],
+    "sourceUrl": "https://todayna.org/todaynawpdocs/SCRNA_Regional_Directory_sml.pdf"
+  },
+  {
+    "name": "West End Area NA Helpline",
+    "phone": "8187879706",
+    "displayPhone": "818-787-9706",
+    "area": "San Fernando Valley / West End, California",
+    "lat": 34.1867,
+    "lng": -118.449,
+    "languages": [
+      "en"
+    ],
+    "sourceUrl": "https://weana.org/na-phone-helplines/"
+  },
+  {
+    "name": "San Fernando Valley Area NA Helpline",
+    "phone": "8189973822",
+    "displayPhone": "818-997-3822",
+    "area": "San Fernando Valley, California",
+    "lat": 34.187,
+    "lng": -118.3813,
+    "languages": [
+      "en"
+    ],
+    "sourceUrl": "https://weana.org/na-phone-helplines/"
+  },
+  {
+    "name": "Greater Hollywood NA Helpline",
+    "phone": "3238501624",
+    "displayPhone": "323-850-1624",
+    "area": "Hollywood, California",
+    "lat": 34.0928,
+    "lng": -118.3287,
+    "languages": [
+      "en"
+    ],
+    "sourceUrl": "https://weana.org/na-phone-helplines/"
+  },
+  {
+    "name": "Westside NA Helpline",
+    "phone": "3103900279",
+    "displayPhone": "310-390-0279",
+    "area": "Westside Los Angeles, California",
+    "lat": 34.0195,
+    "lng": -118.4912,
+    "languages": [
+      "en"
+    ],
+    "sourceUrl": "https://weana.org/na-phone-helplines/"
+  },
+  {
+    "name": "Florida Region NA Statewide Helpline",
+    "phone": "8446235674",
+    "displayPhone": "844-623-5674",
+    "area": "Florida Region",
+    "lat": 27.6648,
+    "lng": -81.5158,
+    "languages": [
+      "en",
+      "es"
+    ],
+    "sourceUrl": "https://naflorida.org/contactus/"
+  },
+  {
+    "name": "South Florida Region NA Helpline",
+    "phone": "8446235674",
+    "displayPhone": "844-623-5674",
+    "area": "South Florida Region",
+    "lat": 25.7617,
+    "lng": -80.1918,
+    "languages": [
+      "en",
+      "es"
+    ],
+    "sourceUrl": "https://sfrna.net/helplines/"
+  },
+  {
+    "name": "South Florida Spanish-Speaking NA Helpline",
+    "phone": "8003571709",
+    "displayPhone": "800-357-1709",
+    "area": "South Florida Spanish-speaking NA",
+    "lat": 25.7617,
+    "lng": -80.1918,
+    "languages": [
+      "es"
+    ],
+    "sourceUrl": "https://peaceriverna.org/helplines/"
+  },
+  {
+    "name": "Gold Coast Area NA Helpline",
+    "phone": "8885241777",
+    "displayPhone": "888-524-1777",
+    "area": "Fort Lauderdale / Gold Coast, Florida",
+    "lat": 26.1224,
+    "lng": -80.1373,
+    "languages": [
+      "en",
+      "es"
+    ],
+    "sourceUrl": "https://goldcoastna.org/helplines/"
+  },
+  {
+    "name": "South Broward Area NA Helpline",
+    "phone": "9549676755",
+    "displayPhone": "954-967-6755",
+    "area": "South Broward, Florida",
+    "lat": 26.0112,
+    "lng": -80.1495,
+    "languages": [
+      "en",
+      "es"
+    ],
+    "sourceUrl": "https://southatlanticna.org/contact/"
+  },
+  {
+    "name": "North Dade Area NA Helpline",
+    "phone": "8669358811",
+    "displayPhone": "866-935-8811",
+    "area": "North Dade, Florida",
+    "lat": 25.8901,
+    "lng": -80.1867,
+    "languages": [
+      "en",
+      "es"
+    ],
+    "sourceUrl": "https://southatlanticna.org/contact/"
+  },
+  {
+    "name": "South Dade Area NA Helpline",
+    "phone": "3052659555",
+    "displayPhone": "305-265-9555",
+    "area": "South Dade / Miami, Florida",
+    "lat": 25.5516,
+    "lng": -80.6327,
+    "languages": [
+      "en",
+      "es"
+    ],
+    "sourceUrl": "https://southatlanticna.org/contact/"
+  },
+  {
+    "name": "Palm Coast / Greater West Palm Beach NA Helpline",
+    "phone": "5618486262",
+    "displayPhone": "561-848-6262",
+    "area": "Greater West Palm Beach, Florida",
+    "lat": 26.7153,
+    "lng": -80.0534,
+    "languages": [
+      "en"
+    ],
+    "sourceUrl": "https://palmcoastna.org/palm-coast-helpline/"
+  },
+  {
+    "name": "Treasure Coast Area NA Helpline",
+    "phone": "7722328676",
+    "displayPhone": "772-232-8676",
+    "area": "Treasure Coast, Florida",
+    "lat": 27.273,
+    "lng": -80.3582,
+    "languages": [
+      "en"
+    ],
+    "sourceUrl": "https://treasurecoastna.com/contact-us/"
+  },
+  {
+    "name": "Central Florida Area NA Helpline",
+    "phone": "8772400002",
+    "displayPhone": "877-240-0002",
+    "area": "Central Florida / Orlando",
+    "lat": 28.5383,
+    "lng": -81.3792,
+    "languages": [
+      "en"
+    ],
+    "sourceUrl": "https://goldcoastna.org/helplines/"
+  },
+  {
+    "name": "Conch Republic Area NA Helpline",
+    "phone": "3056642270",
+    "displayPhone": "305-664-2270",
+    "area": "Florida Keys",
+    "lat": 24.5551,
+    "lng": -81.78,
+    "languages": [
+      "en"
+    ],
+    "sourceUrl": "https://peaceriverna.org/helplines/"
+  },
+  {
+    "name": "Rio Grande Region NA Helpline",
+    "phone": "8009254186",
+    "displayPhone": "800-925-4186",
+    "area": "New Mexico, El Paso, and Southwestern Colorado",
+    "lat": 34.5199,
+    "lng": -105.8701,
+    "languages": [
+      "en",
+      "es"
+    ],
+    "sourceUrl": "https://riograndena.org/contact-us/"
+  },
+  {
+    "name": "El Paso Area NA Helpline",
+    "phone": "8002499428",
+    "displayPhone": "1-800-249-9428",
+    "area": "El Paso, Texas",
+    "lat": 31.7619,
+    "lng": -106.485,
+    "languages": [
+      "en",
+      "es"
+    ],
+    "sourceUrl": "https://www.eptna.org/"
+  },
+  {
+    "name": "Connecticut NA Phoneline",
+    "phone": "8006273543",
+    "displayPhone": "1-800-627-3543",
+    "area": "Connecticut",
+    "lat": 41.6032,
+    "lng": -73.0877,
+    "languages": [
+      "en"
+    ],
+    "sourceUrl": "https://portal.ct.gov/dmhas/programs-and-services/advocacy/statewide-toll-free-numbers"
+  },
+  {
+    "name": "Off The Wall Area NA Helpline",
+    "phone": "9702828079",
+    "displayPhone": "970-282-8079",
+    "area": "Northern Colorado",
+    "lat": 40.5853,
+    "lng": -105.0844,
+    "languages": [
+      "en"
+    ],
+    "sourceUrl": "https://www.otwna.org/meetings/"
+  },
+  {
+    "name": "Serenity Unlimited Area NA 24-Hour Help Line",
+    "phone": "9704627531",
+    "displayPhone": "970-462-7531",
+    "area": "Western Colorado",
+    "lat": 39.0639,
+    "lng": -108.5506,
+    "languages": [
+      "en"
+    ],
+    "sourceUrl": "https://nacolorado.org/serenityunlimited/"
+  },
+  {
+    "name": "SAMHSA National Helpline",
+    "phone": "8006624357",
+    "displayPhone": "1-800-662-HELP (4357)",
+    "area": "United States treatment referral fallback, not NA",
+    "lat": 39.8283,
+    "lng": -98.5795,
+    "languages": [
+      "en",
+      "es"
+    ],
+    "sourceUrl": "https://www.samhsa.gov/find-help/helplines/national-helpline",
+    "isFallback": true,
+    "isNA": false
+  }
+]
