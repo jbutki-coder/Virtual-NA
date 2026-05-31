@@ -1,5 +1,214 @@
 [
   {
+    "source": "NAHelp / ASIS",
+    "name": "NA Meeting Delsbo",
+    "weekday": 0,
+    "startTime": "04:00:00",
+    "timeZone": "America/New_York",
+    "joinUrl": "https://zoom.us/j/8405663129",
+    "phone": "",
+    "extra": "Zoom ID: 840 566 3129. Password: pV6RtV. Notes: Closed; online; first hour translating, then opportunity to share.",
+    "formats": "Closed, Online, Virtual NA"
+  },
+  {
+    "source": "NAHelp / ASIS",
+    "name": "Open Your Heart",
+    "weekday": 0,
+    "startTime": "22:00:00",
+    "timeZone": "America/New_York",
+    "joinUrl": "https://zoom.us/j/87545112054",
+    "phone": "",
+    "extra": "Zoom ID: 875 451 2054. Password: 015943. Notes: Literature Study; online.",
+    "formats": "Literature Study, Online, Virtual NA"
+  },
+  {
+    "source": "NAHelp / ASIS",
+    "name": "Grateful Wakeup",
+    "weekday": 1,
+    "startTime": "09:45:00",
+    "timeZone": "America/New_York",
+    "joinUrl": "https://zoom.us/j/5340228362",
+    "phone": "",
+    "extra": "Zoom ID: 534 022 8362. Password: 505514. Notes: Historical Literature Study; hybrid.",
+    "formats": "Historical Literature Study, Hybrid, Virtual NA"
+  },
+  {
+    "source": "NAHelp / ASIS",
+    "name": "NA Meeting Hudiksvall",
+    "weekday": 1,
+    "startTime": "12:00:00",
+    "timeZone": "America/New_York",
+    "joinUrl": "https://zoom.us/j/8405663129",
+    "phone": "",
+    "extra": "Zoom ID: 840 566 3129. Password: pV6RtV. Notes: Closed; Step/Tradition; online.",
+    "formats": "Closed, Step, Tradition, Online, Virtual NA"
+  },
+  {
+    "source": "NAHelp / ASIS",
+    "name": "The Ties that Bind Us",
+    "weekday": 1,
+    "startTime": "18:30:00",
+    "timeZone": "America/New_York",
+    "joinUrl": "https://zoom.us/j/8305716115",
+    "phone": "",
+    "extra": "Zoom ID: 830 571 6115. Password: 26154. Notes: Historical Literature; Tradition.",
+    "formats": "Historical Literature, Tradition, Virtual NA"
+  },
+  {
+    "source": "NAHelp / ASIS",
+    "name": "Life on Life's Terms",
+    "weekday": 1,
+    "startTime": "21:00:00",
+    "timeZone": "America/New_York",
+    "joinUrl": "https://zoom.us/j/81618499975",
+    "phone": "",
+    "extra": "Zoom ID: 816 1849 9975. Password: 1953. Notes: Literature Study; online.",
+    "formats": "Literature Study, Online, Virtual NA"
+  },
+  {
+    "source": "NAHelp / ASIS",
+    "name": "Fresno Free Basic Text Study",
+    "weekday": 1,
+    "startTime": "21:30:00",
+    "timeZone": "America/New_York",
+    "joinUrl": "https://zoom.us/j/350118822",
+    "phone": "",
+    "extra": "Zoom ID: 350 118 822. Password: Not listed. Notes: Basic Text; online.",
+    "formats": "Basic Text, Online, Virtual NA"
+  },
+  {
+    "source": "NAHelp / ASIS",
+    "name": "Open Your Heart",
+    "weekday": 1,
+    "startTime": "22:00:00",
+    "timeZone": "America/New_York",
+    "joinUrl": "https://zoom.us/j/87545112054",
+    "phone": "",
+    "extra": "Zoom ID: 875 451 2054. Password: 015943. Notes: Literature Study; online.",
+    "formats": "Literature Study, Online, Virtual NA"
+  },
+  {
+    "source": "NAHelp / ASIS",
+    "name": "Grateful Wakeup",
+    "weekday": 2,
+    "startTime": "09:45:00",
+    "timeZone": "America/New_York",
+    "joinUrl": "https://zoom.us/j/5340228362",
+    "phone": "",
+    "extra": "Zoom ID: 534 022 8362. Password: 505514. Notes: Historical Literature Study; hybrid.",
+    "formats": "Historical Literature Study, Hybrid, Virtual NA"
+  },
+  {
+    "source": "NAHelp / ASIS",
+    "name": "Living By Spiritual Principles",
+    "weekday": 2,
+    "startTime": "18:30:00",
+    "timeZone": "America/New_York",
+    "joinUrl": "https://zoom.us/j/620963668",
+    "phone": "",
+    "extra": "Zoom ID: 620 963 668. Password: Not listed. Notes: Basic Text; hybrid.",
+    "formats": "Basic Text, Hybrid, Virtual NA"
+  },
+  {
+    "source": "NAHelp / ASIS",
+    "name": "Gray Book Step Study",
+    "weekday": 2,
+    "startTime": "19:00:00",
+    "timeZone": "America/New_York",
+    "joinUrl": "https://zoom.us/j/738203845",
+    "phone": "",
+    "extra": "Zoom ID: 738 203 845. Password: Not listed. Notes: Literature Study; Step; hybrid.",
+    "formats": "Literature Study, Step, Hybrid, Virtual NA"
+  },
+  {
+    "source": "NAHelp / ASIS",
+    "name": "Open Your Heart",
+    "weekday": 2,
+    "startTime": "22:00:00",
+    "timeZone": "America/New_York",
+    "joinUrl": "https://zoom.us/j/87545112054",
+    "phone": "",
+    "extra": "Zoom ID: 875 451 2054. Password: 015943. Notes: Literature Study; online.",
+    "formats": "Literature Study, Online, Virtual NA"
+  },
+  {
+    "source": "NAHelp / ASIS",
+    "name": "NA Meeting Hudiksvall",
+    "weekday": 3,
+    "startTime": "12:00:00",
+    "timeZone": "America/New_York",
+    "joinUrl": "https://zoom.us/j/8405663129",
+    "phone": "",
+    "extra": "Zoom ID: 840 566 3129. Password: pV6RtV. Notes: Closed; Step/Tradition; online.",
+    "formats": "Closed, Step, Tradition, Online, Virtual NA"
+  },
+  {
+    "source": "NAHelp / ASIS",
+    "name": "The War Is Over!",
+    "weekday": 3,
+    "startTime": "21:00:00",
+    "timeZone": "America/New_York",
+    "joinUrl": "https://zoom.us/j/7304464816",
+    "phone": "",
+    "extra": "Zoom ID: 730 446 4816. Password: TWO. Notes: Gray Book Study; closed; online.",
+    "formats": "Gray Book Study, Closed, Online, Virtual NA"
+  },
+  {
+    "source": "NAHelp / ASIS",
+    "name": "Open Your Heart",
+    "weekday": 3,
+    "startTime": "22:00:00",
+    "timeZone": "America/New_York",
+    "joinUrl": "https://zoom.us/j/87545112054",
+    "phone": "",
+    "extra": "Zoom ID: 875 451 2054. Password: 015943. Notes: Literature Study; online.",
+    "formats": "Literature Study, Online, Virtual NA"
+  },
+  {
+    "source": "NAHelp / ASIS",
+    "name": "NA Meeting Delsbo",
+    "weekday": 4,
+    "startTime": "12:30:00",
+    "timeZone": "America/New_York",
+    "joinUrl": "https://zoom.us/j/8405663129",
+    "phone": "",
+    "extra": "Zoom ID: 840 566 3129. Password: pV6RtV. Notes: Closed; online; first hour translating, then opportunity to share.",
+    "formats": "Closed, Online, Virtual NA"
+  },
+  {
+    "source": "NAHelp / ASIS",
+    "name": "NA Meeting Manchester - UK",
+    "weekday": 4,
+    "startTime": "15:00:00",
+    "timeZone": "America/New_York",
+    "joinUrl": "https://join.skype.com/jbCOMdccRZJ",
+    "phone": "",
+    "extra": "Skype link only.",
+    "formats": "Skype, Virtual NA"
+  },
+  {
+    "source": "NAHelp / ASIS",
+    "name": "Spiritual Solution",
+    "weekday": 4,
+    "startTime": "19:30:00",
+    "timeZone": "America/New_York",
+    "joinUrl": "https://zoom.us/j/5770663924",
+    "phone": "",
+    "extra": "Zoom ID: 577 066 3924. Password: 000000. Notes: Literature Study; open meeting.",
+    "formats": "Literature Study, Open, Virtual NA"
+  },
+  {
+    "source": "NAHelp / ASIS",
+    "name": "A Different Look",
+    "weekday": 6,
+    "startTime": "20:00:00",
+    "timeZone": "America/New_York",
+    "joinUrl": "https://zoom.us/j/8760240945",
+    "phone": "",
+    "extra": "Zoom ID: 876 024 0945. Password: No password. Notes: Closed Literature Study meeting for addicts only.",
+    "formats": "Closed, Literature Study, Virtual NA"
+  },
+  {
     "source": "Billwild / Darkside Fellowship",
     "name": "Recuperar com Responsabilidade",
     "weekday": 0,
@@ -43,7 +252,6 @@
     "extra": "Zoom ID: 87545112054. Password: 015943. Meets Virtually.",
     "formats": "Virtual NA"
   },
-
   {
     "source": "Billwild / Darkside Fellowship",
     "name": "The Nature Of Recovery",
@@ -143,7 +351,6 @@
     "extra": "Zoom ID: 87545112054. Password: 015943. Meets Virtually.",
     "formats": "Virtual NA"
   },
-
   {
     "source": "Billwild / Darkside Fellowship",
     "name": "Grateful Wake Up",
@@ -243,7 +450,6 @@
     "extra": "Zoom ID: 87545112054. Password: 015943. Meets Virtually.",
     "formats": "Virtual NA"
   },
-
   {
     "source": "Billwild / Darkside Fellowship",
     "name": "Mauao, New Zealand",
@@ -365,7 +571,6 @@
     "extra": "Zoom ID: 87545112054. Password: 015943. Meets Virtually.",
     "formats": "Virtual NA"
   },
-
   {
     "source": "Billwild / Darkside Fellowship",
     "name": "Grey Book Study Meeting",
@@ -476,7 +681,6 @@
     "extra": "Zoom ID: 87545112054. Password: 015943. Meets Virtually.",
     "formats": "Virtual NA"
   },
-
   {
     "source": "Billwild / Darkside Fellowship",
     "name": "Grateful Wake Up",
@@ -521,7 +725,6 @@
     "extra": "Zoom ID: 87545112054. Password: 015943. Meets Virtually.",
     "formats": "Virtual NA"
   },
-
   {
     "source": "Billwild / Darkside Fellowship",
     "name": "Saturday Coffee Hour",
@@ -564,6 +767,17 @@
     "joinUrl": "https://zoom.us/j/727210620",
     "phone": "",
     "extra": "Zoom ID: 727-210-620. Meets Virtually.",
+    "formats": "Virtual NA"
+  },
+  {
+    "source": "Manual NA Meeting",
+    "name": "Ultimate Weapon Group",
+    "weekday": 6,
+    "startTime": "19:30:00",
+    "timeZone": "America/Detroit",
+    "joinUrl": "https://us02web.zoom.us/j/5726810574",
+    "phone": "",
+    "extra": "Zoom ID: 572 681 0574. Time listed in Michigan/Eastern time.",
     "formats": "Virtual NA"
   },
   {
