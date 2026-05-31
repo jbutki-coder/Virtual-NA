@@ -113,45 +113,6 @@
       line-height: 1.45;
     }
 
-    .progress-list,
-    .meeting-list {
-      border: 1px solid rgba(34, 177, 76, 0.7);
-      border-radius: 18px;
-      overflow: hidden;
-      background: rgba(8, 9, 10, 0.92);
-      box-shadow: 0 0 20px rgba(34, 177, 76, 0.18);
-    }
-
-    .meeting-list {
-      min-height: 360px;
-    }
-
-    .progress-item,
-    .meeting {
-      padding: 16px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    }
-
-    .progress-item:last-child,
-    .meeting:last-child {
-      border-bottom: none;
-    }
-
-    .meeting-title,
-    .progress-title {
-      font-size: 19px;
-      font-weight: 900;
-      color: #ffffff;
-      margin-bottom: 8px;
-    }
-
-    .meta {
-      color: #e3e3e3;
-      font-size: 15px;
-      line-height: 1.45;
-      margin-bottom: 4px;
-    }
-
     .tabs {
       display: grid;
       grid-template-columns: repeat(8, 1fr);
@@ -261,6 +222,15 @@
       text-shadow: var(--glow-yellow);
     }
 
+    .meeting-list {
+      border: 1px solid rgba(34, 177, 76, 0.7);
+      border-radius: 18px;
+      overflow: hidden;
+      background: rgba(8, 9, 10, 0.92);
+      box-shadow: 0 0 20px rgba(34, 177, 76, 0.18);
+      min-height: 360px;
+    }
+
     .block-header {
       padding: 14px 16px;
       background: linear-gradient(90deg, rgba(34, 177, 76, 0.35), rgba(243, 212, 0, 0.18));
@@ -269,6 +239,29 @@
       font-size: 18px;
       font-weight: 800;
       text-shadow: 0 0 8px rgba(243, 212, 0, 0.45);
+    }
+
+    .meeting {
+      padding: 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .meeting:last-child {
+      border-bottom: none;
+    }
+
+    .meeting-title {
+      font-size: 19px;
+      font-weight: 900;
+      color: #ffffff;
+      margin-bottom: 8px;
+    }
+
+    .meta {
+      color: #e3e3e3;
+      font-size: 15px;
+      line-height: 1.45;
+      margin-bottom: 4px;
     }
 
     .join {
@@ -352,19 +345,9 @@
     </header>
 
     <section class="card">
-      <h2 class="section-title">Meetings in Progress</h2>
-      <p class="section-note">
-        These virtual and hybrid NA meetings appear to be happening right now based on your device timezone.
-      </p>
-      <div id="progressList" class="progress-list">
-        <div class="empty">Loading meetings in progress...</div>
-      </div>
-    </section>
-
-    <section class="card">
       <h2 class="section-title">Find Meetings</h2>
       <p class="section-note">
-        Use the day and time controls, arrows, or search bar to look ahead and find virtual or hybrid NA meetings.
+        Use Now, day/time controls, arrows, or search to find virtual and hybrid NA meetings.
       </p>
 
       <div class="tabs">
@@ -405,6 +388,7 @@
   <script>
     const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     let allMeetings = [];
+    let mode = "now";
 
     function pad(n) {
       return String(n).padStart(2, "0");
@@ -483,6 +467,8 @@
     }
 
     function changeTime(amount) {
+      mode = "browse";
+
       const timeSelect = document.getElementById("timeSelect");
       const daySelect = document.getElementById("daySelect");
 
@@ -513,7 +499,12 @@
     function setActiveTab(day) {
       document.querySelectorAll(".tab").forEach(tab => {
         tab.classList.remove("active");
-        if (tab.dataset.day === String(day)) {
+
+        if (day === "now" && tab.dataset.day === "now") {
+          tab.classList.add("active");
+        }
+
+        if (day !== "now" && tab.dataset.day === String(day)) {
           tab.classList.add("active");
         }
       });
@@ -523,10 +514,11 @@
       document.querySelectorAll(".tab").forEach(tab => {
         tab.addEventListener("click", () => {
           if (tab.dataset.day === "now") {
+            mode = "now";
             setCurrentTimeBlock();
-            document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-            tab.classList.add("active");
+            setActiveTab("now");
           } else {
+            mode = "browse";
             document.getElementById("daySelect").value = tab.dataset.day;
             setActiveTab(tab.dataset.day);
           }
@@ -555,6 +547,11 @@
     }
 
     function updateCurrentBlockText() {
+      if (mode === "now" && !document.getElementById("searchBox").value.trim()) {
+        document.getElementById("currentBlock").textContent = "In Progress";
+        return;
+      }
+
       const day = Number(document.getElementById("daySelect").value);
       const time = document.getElementById("timeSelect").value;
 
@@ -562,53 +559,20 @@
         `${dayNames[day]}, at ${toDisplayTime(time)}`;
     }
 
-    function renderInProgress() {
-      const progressList = document.getElementById("progressList");
+    function isInProgress(meeting) {
       const now = new Date();
       const currentDay = now.getDay();
       const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
-      const inProgress = allMeetings
-        .map(convertMeetingToLocal)
-        .filter(m => {
-          const duration = durationToMinutes(m.duration);
-          return (
-            m.localWeekday === currentDay &&
-            currentMinutes >= m.localMinutes &&
-            currentMinutes < m.localMinutes + duration
-          );
-        })
-        .sort((a, b) => a.localMinutes - b.localMinutes || a.name.localeCompare(b.name));
+      const duration = durationToMinutes(meeting.duration);
+      const start = meeting.localMinutes;
+      const end = start + duration;
 
-      if (!inProgress.length) {
-        progressList.innerHTML = `<div class="empty">No virtual or hybrid NA meetings appear to be in progress right now.</div>`;
-        return;
+      if (meeting.localWeekday !== currentDay) {
+        return false;
       }
 
-      progressList.innerHTML = inProgress.map(m => {
-        const duration = durationToMinutes(m.duration);
-        const endMinutes = m.localMinutes + duration;
-        const endHour = Math.floor((endMinutes % (24 * 60)) / 60);
-        const endMinute = endMinutes % 60;
-        const endTime = toDisplayTime(`${pad(endHour)}:${pad(endMinute)}`);
-
-        return `
-          <div class="progress-item">
-            <div class="progress-title">${escapeHtml(m.name)}</div>
-            <div class="meta">
-              Started: ${escapeHtml(m.localTimeText)} | Approx. ends: ${escapeHtml(endTime)}
-              ${m.timeZone ? ` | Shown in: ${escapeHtml(m.timeZone)}` : ""}
-            </div>
-            ${m.source ? `<div class="meta">Source: ${escapeHtml(m.source)}</div>` : ""}
-            ${m.formats ? `<div class="meta">Formats: ${escapeHtml(m.formats)}</div>` : ""}
-            ${m.joinUrl ? `
-              <a class="join" href="${escapeAttr(m.joinUrl)}" target="_blank" rel="noopener">
-                Join Meeting
-              </a>
-            ` : ""}
-          </div>
-        `;
-      }).join("");
+      return currentMinutes >= start && currentMinutes < end;
     }
 
     function renderMeetings() {
@@ -618,7 +582,6 @@
       const search = document.getElementById("searchBox").value.toLowerCase().trim();
 
       updateCurrentBlockText();
-      renderInProgress();
 
       const [selectedH, selectedM] = selectedTime.split(":").map(Number);
       const selectedMinutes = selectedH * 60 + selectedM;
@@ -643,6 +606,10 @@
             return haystack.includes(search);
           }
 
+          if (mode === "now") {
+            return isInProgress(m);
+          }
+
           return (
             m.localWeekday === day &&
             m.localMinutes >= selectedMinutes &&
@@ -656,50 +623,74 @@
         );
 
       if (!filtered.length) {
-        results.innerHTML = search
-          ? `<div class="empty">No meetings found matching “${escapeHtml(search)}”.</div>`
-          : `<div class="empty">No virtual or hybrid meetings found for this 15-minute block.</div>`;
+        if (search) {
+          results.innerHTML = `<div class="empty">No meetings found matching “${escapeHtml(search)}”.</div>`;
+          return;
+        }
+
+        if (mode === "now") {
+          results.innerHTML = `<div class="empty">No virtual or hybrid NA meetings appear to be in progress right now.</div>`;
+          return;
+        }
+
+        results.innerHTML = `<div class="empty">No virtual or hybrid meetings found for this 15-minute block.</div>`;
         return;
       }
 
       const grouped = {};
 
       filtered.forEach(meeting => {
-        const key = `${meeting.localWeekday}-${blockKey(meeting.localMinutes)}`;
+        const key = mode === "now" && !search
+          ? "in-progress"
+          : `${meeting.localWeekday}-${blockKey(meeting.localMinutes)}`;
+
         if (!grouped[key]) grouped[key] = [];
         grouped[key].push(meeting);
       });
 
       results.innerHTML = Object.entries(grouped).map(([key, meetings]) => {
-        const [weekday, time] = key.split("-");
+        let header = "";
+
+        if (key === "in-progress") {
+          header = `In Progress (${meetings.length})`;
+        } else {
+          const [weekday, time] = key.split("-");
+          header = `${search ? "Search result: " : ""}${dayNames[Number(weekday)]} around ${toDisplayTime(time)} (${meetings.length})`;
+        }
 
         return `
           <div>
-            <div class="block-header">
-              ${search ? "Search result: " : ""}
-              ${dayNames[Number(weekday)]} around ${toDisplayTime(time)} (${meetings.length})
-            </div>
+            <div class="block-header">${header}</div>
 
-            ${meetings.map(m => `
-              <div class="meeting">
-                <div class="meeting-title">${escapeHtml(m.name)}</div>
+            ${meetings.map(m => {
+              const duration = durationToMinutes(m.duration);
+              const endMinutes = m.localMinutes + duration;
+              const endHour = Math.floor((endMinutes % (24 * 60)) / 60);
+              const endMinute = endMinutes % 60;
+              const endTime = toDisplayTime(`${pad(endHour)}:${pad(endMinute)}`);
 
-                <div class="meta">
-                  Starts: ${escapeHtml(m.localTimeText)}
-                  ${m.timeZone ? ` | Shown in: ${escapeHtml(m.timeZone)}` : ""}
+              return `
+                <div class="meeting">
+                  <div class="meeting-title">${escapeHtml(m.name)}</div>
+
+                  <div class="meta">
+                    ${dayNames[m.localWeekday]}, ${escapeHtml(m.localTimeText)} - ${escapeHtml(endTime)}
+                    ${m.timeZone ? ` | Shown in: ${escapeHtml(m.timeZone)}` : ""}
+                  </div>
+
+                  ${mode === "now" && !search ? `<div class="meta"><em>In progress since ${escapeHtml(m.localTimeText)}</em></div>` : ""}
+                  ${m.source ? `<div class="meta">Source: ${escapeHtml(m.source)}</div>` : ""}
+                  ${m.formats ? `<div class="meta">Formats: ${escapeHtml(m.formats)}</div>` : ""}
+                  ${m.extra ? `<div class="meta">${escapeHtml(m.extra)}</div>` : ""}
+
+                  ${m.joinUrl ? `
+                    <a class="join" href="${escapeAttr(m.joinUrl)}" target="_blank" rel="noopener">
+                      Join Meeting
+                    </a>
+                  ` : ""}
                 </div>
-
-                ${m.source ? `<div class="meta">Source: ${escapeHtml(m.source)}</div>` : ""}
-                ${m.formats ? `<div class="meta">Formats: ${escapeHtml(m.formats)}</div>` : ""}
-                ${m.extra ? `<div class="meta">${escapeHtml(m.extra)}</div>` : ""}
-
-                ${m.joinUrl ? `
-                  <a class="join" href="${escapeAttr(m.joinUrl)}" target="_blank" rel="noopener">
-                    Join Meeting
-                  </a>
-                ` : ""}
-              </div>
-            `).join("")}
+              `;
+            }).join("")}
           </div>
         `;
       }).join("");
@@ -721,11 +712,9 @@
     async function loadMeetings() {
       const status = document.getElementById("status");
       const results = document.getElementById("results");
-      const progressList = document.getElementById("progressList");
 
       status.textContent = "Loading meetings...";
       results.innerHTML = `<div class="empty">Loading...</div>`;
-      progressList.innerHTML = `<div class="empty">Loading meetings in progress...</div>`;
 
       try {
         const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "America/Detroit";
@@ -745,7 +734,6 @@
       } catch (error) {
         status.textContent = "Error loading meetings.";
         results.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
-        progressList.innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
       }
     }
 
@@ -755,16 +743,26 @@
       setupTabs();
 
       document.getElementById("daySelect").addEventListener("change", () => {
+        mode = "browse";
         setActiveTab(document.getElementById("daySelect").value);
         renderMeetings();
       });
 
-      document.getElementById("timeSelect").addEventListener("change", renderMeetings);
+      document.getElementById("timeSelect").addEventListener("change", () => {
+        mode = "browse";
+        setActiveTab(document.getElementById("daySelect").value);
+        renderMeetings();
+      });
+
       document.getElementById("searchBox").addEventListener("input", renderMeetings);
 
       loadMeetings();
 
-      setInterval(renderInProgress, 60000);
+      setInterval(() => {
+        if (mode === "now") {
+          renderMeetings();
+        }
+      }, 60000);
     });
 
     if ("serviceWorker" in navigator) {
