@@ -1,0 +1,357 @@
+[
+  {
+    "name": "UK Narcotics Anonymous Helpline",
+    "phone": "+443009991212",
+    "displayPhone": "0300 999 1212",
+    "area": "United Kingdom",
+    "country": "United Kingdom",
+    "lat": 51.5072,
+    "lng": -0.1276,
+    "languages": [
+      "en"
+    ],
+    "website": "https://helpline.ukna.org/"
+  },
+  {
+    "name": "Narcotics Anonymous Ireland Information Line",
+    "phone": "+35316728000",
+    "displayPhone": "+353 (0)1 672 8000",
+    "area": "Ireland",
+    "country": "Ireland",
+    "lat": 53.3498,
+    "lng": -6.2603,
+    "languages": [
+      "en"
+    ],
+    "website": "https://www.na-ireland.org/contact-na-ireland-2/"
+  },
+  {
+    "name": "NA Ireland Eastern Area Helpline",
+    "phone": "+353868629308",
+    "displayPhone": "+353 (0)86 862 9308",
+    "area": "Leinster / Eastern Ireland",
+    "country": "Ireland",
+    "lat": 53.3498,
+    "lng": -6.2603,
+    "languages": [
+      "en"
+    ],
+    "website": "https://www.na-ireland.org/contact-na-ireland-2/"
+  },
+  {
+    "name": "NA Northern Ireland Helpline",
+    "phone": "+443003651010",
+    "displayPhone": "+44 (0)300 365 1010",
+    "area": "Northern Ireland",
+    "country": "United Kingdom",
+    "lat": 54.5973,
+    "lng": -5.9301,
+    "languages": [
+      "en"
+    ],
+    "website": "https://www.na-ireland.org/contact-na-ireland-2/"
+  },
+  {
+    "name": "NA Ireland Western Area Helpline",
+    "phone": "+353868149004",
+    "displayPhone": "+353 (0)86 814 9004",
+    "area": "Connacht / Western Ireland",
+    "country": "Ireland",
+    "lat": 53.2707,
+    "lng": -9.0568,
+    "languages": [
+      "en"
+    ],
+    "website": "https://www.na-ireland.org/contact-na-ireland-2/"
+  },
+  {
+    "name": "NA Ireland Southern Area Helpline",
+    "phone": "+353871386120",
+    "displayPhone": "+353 (0)87 138 6120",
+    "area": "Munster / Southern Ireland",
+    "country": "Ireland",
+    "lat": 51.8985,
+    "lng": -8.4756,
+    "languages": [
+      "en"
+    ],
+    "website": "https://www.na-ireland.org/contact-na-ireland-2/"
+  },
+  {
+    "name": "Narcotiques Anonymes France Helpline",
+    "phone": "+33143721272",
+    "displayPhone": "01 43 72 12 72",
+    "area": "France",
+    "country": "France",
+    "lat": 46.2276,
+    "lng": 2.2137,
+    "languages": [
+      "fr"
+    ],
+    "website": "https://www.narcotiquesanonymes.org/contact/"
+  },
+  {
+    "name": "Narcóticos Anónimos Portugal Linha de Ajuda",
+    "phone": "+351219477970",
+    "displayPhone": "219 477 970",
+    "area": "Portugal",
+    "country": "Portugal",
+    "lat": 39.3999,
+    "lng": -8.2245,
+    "languages": [
+      "pt"
+    ],
+    "website": "https://na-pt.org/"
+  },
+  {
+    "name": "Narcotics Anonymous Australia National Helpline",
+    "phone": "1300652820",
+    "displayPhone": "1300 652 820",
+    "area": "Australia",
+    "country": "Australia",
+    "lat": -25.2744,
+    "lng": 133.7751,
+    "languages": [
+      "en"
+    ],
+    "website": "https://www.na.org.au/"
+  },
+  {
+    "name": "Narcotics Anonymous Australia SMS Meeting Finder",
+    "phone": "0488811247",
+    "displayPhone": "0488 811 247",
+    "area": "Australia",
+    "country": "Australia",
+    "lat": -25.2744,
+    "lng": 133.7751,
+    "languages": [
+      "en"
+    ],
+    "website": "https://www.na.org.au/multi/contact-na/"
+  },
+  {
+    "name": "Narcotics Anonymous Aotearoa New Zealand Helpline",
+    "phone": "0800628632",
+    "displayPhone": "0800 NA TODAY / 0800 628 632",
+    "area": "Aotearoa New Zealand",
+    "country": "New Zealand",
+    "lat": -40.9006,
+    "lng": 174.886,
+    "languages": [
+      "en"
+    ],
+    "website": "https://nzna.org/"
+  },
+  {
+    "name": "Narcotics Anonymous South Africa Phoneline",
+    "phone": "0861006962",
+    "displayPhone": "0861 00 6962",
+    "area": "South Africa",
+    "country": "South Africa",
+    "lat": -30.5595,
+    "lng": 22.9375,
+    "languages": [
+      "en"
+    ],
+    "website": "https://na.org.za/"
+  },
+  {
+    "name": "Narcotics Anonymous South Africa WhatsApp",
+    "phone": "0828998816",
+    "displayPhone": "082 899 8816",
+    "area": "South Africa",
+    "country": "South Africa",
+    "lat": -30.5595,
+    "lng": 22.9375,
+    "languages": [
+      "en"
+    ],
+    "website": "https://na.org.za/"
+  },
+  {
+    "name": "Narcóticos Anônimos Brasil Linha de Ajuda Nacional",
+    "phone": "30035222",
+    "displayPhone": "3003-5222",
+    "area": "Brazil",
+    "country": "Brazil",
+    "lat": -14.235,
+    "lng": -51.9253,
+    "languages": [
+      "pt"
+    ],
+    "website": "https://www.na.org.br/linha-de-ajuda/"
+  },
+  {
+    "name": "Narcóticos Anônimos Brasil Linha 132",
+    "phone": "132",
+    "displayPhone": "132",
+    "area": "Brazil",
+    "country": "Brazil",
+    "lat": -14.235,
+    "lng": -51.9253,
+    "languages": [
+      "pt"
+    ],
+    "website": "https://www.na.org.br/linha-de-ajuda/"
+  },
+  {
+    "name": "Narcóticos Anônimos Brasil 0800",
+    "phone": "08002210221",
+    "displayPhone": "0800 221 0221",
+    "area": "Brazil",
+    "country": "Brazil",
+    "lat": -14.235,
+    "lng": -51.9253,
+    "languages": [
+      "pt"
+    ],
+    "website": "https://www.na.org.br/linha-de-ajuda/"
+  },
+  {
+    "name": "Narcóticos Anónimos Argentina Línea de Información",
+    "phone": "+541150471626",
+    "displayPhone": "11 5047-1626",
+    "area": "Argentina",
+    "country": "Argentina",
+    "lat": -38.4161,
+    "lng": -63.6167,
+    "languages": [
+      "es"
+    ],
+    "website": "https://www.na.org.ar/"
+  },
+  {
+    "name": "Narcóticos Anónimos Argentina Línea 0800",
+    "phone": "08003334720",
+    "displayPhone": "0800-333-4720",
+    "area": "Argentina",
+    "country": "Argentina",
+    "lat": -38.4161,
+    "lng": -63.6167,
+    "languages": [
+      "es"
+    ],
+    "website": "https://www.na.org.ar/"
+  },
+  {
+    "name": "Narcóticos Anónimos Chile Área Norte Fono Ayuda",
+    "phone": "+56999642469",
+    "displayPhone": "+56 9 9964 2469",
+    "area": "Northern Chile",
+    "country": "Chile",
+    "lat": -23.6509,
+    "lng": -70.3975,
+    "languages": [
+      "es"
+    ],
+    "website": "https://nachile.cl/"
+  },
+  {
+    "name": "Narcóticos Anónimos Chile Área Despertar de la Costa",
+    "phone": "+56997922795",
+    "displayPhone": "+56 9 9792 2795",
+    "area": "Chile",
+    "country": "Chile",
+    "lat": -33.4489,
+    "lng": -70.6693,
+    "languages": [
+      "es"
+    ],
+    "website": "https://nachile.cl/"
+  },
+  {
+    "name": "Narcóticos Anónimos Chile Área Servicio y Recuperación",
+    "phone": "+56927512418",
+    "displayPhone": "+56 9 2751 2418",
+    "area": "Chile",
+    "country": "Chile",
+    "lat": -33.4489,
+    "lng": -70.6693,
+    "languages": [
+      "es"
+    ],
+    "website": "https://nachile.cl/area-servicio-y-recuperacion/"
+  },
+  {
+    "name": "Narcotics Anonymous Israel English Helpline",
+    "phone": "+972559505956",
+    "displayPhone": "055-9505956",
+    "area": "Israel",
+    "country": "Israel",
+    "lat": 31.0461,
+    "lng": 34.8516,
+    "languages": [
+      "en",
+      "he"
+    ],
+    "website": "https://naisrael.org.il/en/meetings/"
+  },
+  {
+    "name": "Iran Region One NA Phonebook",
+    "phone": "+989128155576",
+    "displayPhone": "09128155576",
+    "area": "Iran Region One",
+    "country": "Iran",
+    "lat": 35.6892,
+    "lng": 51.389,
+    "languages": [
+      "fa"
+    ],
+    "website": "https://app.nairan1.org/en/phonebook"
+  },
+  {
+    "name": "Iran Region One North Tehran NA Phone",
+    "phone": "+989126272834",
+    "displayPhone": "09126272834",
+    "area": "North Tehran, Iran",
+    "country": "Iran",
+    "lat": 35.771,
+    "lng": 51.4388,
+    "languages": [
+      "fa"
+    ],
+    "website": "https://app.nairan1.org/en/phonebook"
+  },
+  {
+    "name": "NA Japan English Supporter Phone",
+    "phone": "+818035251987",
+    "displayPhone": "+81-80-3525-1987",
+    "area": "Japan English-speaking NA support",
+    "country": "Japan",
+    "lat": 35.6762,
+    "lng": 139.6503,
+    "languages": [
+      "en",
+      "ja"
+    ],
+    "website": "https://najapan.org/english-information/"
+  },
+  {
+    "name": "NA Japan English Supporter Phone 2",
+    "phone": "+819063503970",
+    "displayPhone": "+81-90-6350-3970",
+    "area": "Japan English-speaking NA support",
+    "country": "Japan",
+    "lat": 35.6762,
+    "lng": 139.6503,
+    "languages": [
+      "en",
+      "ja"
+    ],
+    "website": "https://najapan.org/english-information/"
+  },
+  {
+    "name": "NA Japan English Supporter Phone 3",
+    "phone": "+819070033833",
+    "displayPhone": "+81-90-7003-3833",
+    "area": "Japan English-speaking NA support",
+    "country": "Japan",
+    "lat": 35.6762,
+    "lng": 139.6503,
+    "languages": [
+      "en",
+      "ja"
+    ],
+    "website": "https://najapan.org/english-information/"
+  }
+]
