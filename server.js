@@ -19,8 +19,60 @@ const BMLT_SOURCES = [
     name: "Virtual NA / BMLT",
     fellowship: "NA",
     url: "https://bmlt.virtual-na.org/main_server/client_interface/json/?switcher=GetSearchResults"
+  },
+  {
+    name: "Michigan Region / BMLT",
+    fellowship: "NA",
+    url: "https://michigan-na.org/bmlt/main_server/client_interface/json/?switcher=GetSearchResults"
+  },
+  {
+    name: "NERNA / BMLT",
+    fellowship: "NA",
+    url: "https://www.nerna.org/main_server/client_interface/json/?switcher=GetSearchResults"
+  },
+  {
+    name: "WSZF / BMLT",
+    fellowship: "NA",
+    url: "https://bmlt.wszf.org/main_server/client_interface/json/?switcher=GetSearchResults"
+  },
+  {
+    name: "SEZF / BMLT",
+    fellowship: "NA",
+    url: "https://bmlt.sezf.org/main_server/client_interface/json/?switcher=GetSearchResults"
+  },
+  {
+    name: "Australia Region / BMLT",
+    fellowship: "NA",
+    url: "https://www.na.org.au/main_server/client_interface/json/?switcher=GetSearchResults"
+  },
+  {
+    name: "South Africa Region / BMLT",
+    fellowship: "NA",
+    url: "https://na.org.za/main_server/client_interface/json/?switcher=GetSearchResults"
+  },
+  {
+    name: "UKNA / BMLT",
+    fellowship: "NA",
+    url: "https://ukna.org/main_server/client_interface/json/?switcher=GetSearchResults"
+  },
+  {
+    name: "Ireland NA / BMLT",
+    fellowship: "NA",
+    url: "https://www.na-ireland.org/main_server/client_interface/json/?switcher=GetSearchResults"
+  },
+  {
+    name: "Iran Region One / Possible BMLT",
+    fellowship: "NA",
+    url: "https://meeting.nairan1.org/main_server/client_interface/json/?switcher=GetSearchResults"
+  },
+  {
+    name: "Iran Region One / Possible BMLT Alt",
+    fellowship: "NA",
+    url: "https://meeting.nairan1.org/en/main_server/client_interface/json/?switcher=GetSearchResults"
   }
 ];
+
+let lastSourceReport = [];
 
 const TIME_ZONE_ALIASES = {
   eastern: "America/New_York",
@@ -62,11 +114,29 @@ const TIME_ZONE_ALIASES = {
   england: "Europe/London",
   london: "Europe/London",
 
+  ireland: "Europe/Dublin",
+  dublin: "Europe/Dublin",
+
   portugal: "Europe/Lisbon",
   lisbon: "Europe/Lisbon",
 
   thailand: "Asia/Bangkok",
   bangkok: "Asia/Bangkok",
+
+  iran: "Asia/Tehran",
+  tehran: "Asia/Tehran",
+
+  australia: "Australia/Sydney",
+  sydney: "Australia/Sydney",
+  melbourne: "Australia/Melbourne",
+  brisbane: "Australia/Brisbane",
+  perth: "Australia/Perth",
+  adelaide: "Australia/Adelaide",
+
+  africa: "Africa/Johannesburg",
+  southafrica: "Africa/Johannesburg",
+  "south africa": "Africa/Johannesburg",
+  johannesburg: "Africa/Johannesburg",
 
   newzealand: "Pacific/Auckland",
   "new zealand": "Pacific/Auckland",
@@ -106,6 +176,7 @@ function hasVirtualOrHybridLanguage(value) {
     text.includes("zoom") ||
     text.includes("meets virtually") ||
     text.includes("meets virtually and in-person") ||
+    text.includes("meets virtually and in person") ||
     text.includes("online") ||
     text.includes("web") ||
     text.includes("skype") ||
@@ -154,13 +225,19 @@ function isVirtualOrHybridMeeting(m) {
     formats.includes("VM") ||
     formats.includes("HY") ||
     formats.includes("VIRTUAL") ||
-    formats.includes("HYBRID");
+    formats.includes("HYBRID") ||
+    formats.includes("ONLINE");
+
+  const hasVirtualVenueType =
+    String(m.venue_type || "").toLowerCase().includes("virtual") ||
+    String(m.venue_type || "").toLowerCase().includes("hybrid") ||
+    String(m.venue_type || "") === "2" ||
+    String(m.venue_type || "") === "3";
 
   const hasVirtualWords = hasVirtualOrHybridLanguage(joined);
-
   const phoneOnly = hasPhoneOnlyLanguage(joined);
 
-  return Boolean((hasVirtualLink || hasVirtualFormat || hasVirtualWords) && !phoneOnly);
+  return Boolean((hasVirtualLink || hasVirtualFormat || hasVirtualVenueType || hasVirtualWords) && !phoneOnly);
 }
 
 function customMeetingIsVirtualOrHybrid(meeting) {
@@ -395,8 +472,6 @@ function normalizeBmltMeeting(m, sourceName) {
     extractUrls(m.virtual_meeting_additional_info || m.comments || "")[0] ||
     "";
 
-  const phone = "";
-
   const extraParts = [
     m.virtual_meeting_additional_info,
     m.comments,
@@ -419,16 +494,32 @@ function normalizeBmltMeeting(m, sourceName) {
     timeZone: sourceTimeZone,
     sourceTimeZone,
     joinUrl,
-    phone,
+    phone: "",
     extra: [...extraParts, `Source: ${sourceName}`].join(" | "),
     formats,
     raw: m
   };
 }
 
+async function fetchWithTimeout(url, options = {}, timeoutMs = 12000) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
+
+    return response;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 async function fetchJsonSource(source) {
   try {
-    const response = await fetch(source.url, {
+    const response = await fetchWithTimeout(source.url, {
       headers: {
         "User-Agent": "Blue-Water-Virtual-NA-Meeting-Finder/1.0",
         "Accept": "application/json,text/plain,*/*"
@@ -436,23 +527,42 @@ async function fetchJsonSource(source) {
     });
 
     if (!response.ok) {
-      throw new Error(`${source.name} returned ${response.status}`);
+      throw new Error(`${source.name} returned HTTP ${response.status}`);
     }
 
     const data = await response.json();
 
-    const meetings = Array.isArray(data)
+    const rawMeetings = Array.isArray(data)
       ? data
       : Array.isArray(data.meetings)
         ? data.meetings
         : [];
 
-    return meetings
+    const filteredMeetings = rawMeetings
       .filter(isVirtualOrHybridMeeting)
       .map(m => normalizeBmltMeeting(m, source.name));
+
+    return {
+      source: source.name,
+      url: source.url,
+      ok: true,
+      rawCount: rawMeetings.length,
+      virtualHybridCount: filteredMeetings.length,
+      error: "",
+      meetings: filteredMeetings
+    };
   } catch (error) {
     console.warn(`Skipped ${source.name}: ${error.message}`);
-    return [];
+
+    return {
+      source: source.name,
+      url: source.url,
+      ok: false,
+      rawCount: 0,
+      virtualHybridCount: 0,
+      error: error.message,
+      meetings: []
+    };
   }
 }
 
@@ -462,9 +572,17 @@ async function loadCustomMeetings() {
     const text = await fs.readFile(filePath, "utf8");
     const data = JSON.parse(text);
 
-    if (!Array.isArray(data)) return [];
+    if (!Array.isArray(data)) {
+      return {
+        ok: false,
+        error: "custom-meetings.json exists, but it is not a JSON array.",
+        rawCount: 0,
+        virtualHybridCount: 0,
+        meetings: []
+      };
+    }
 
-    return data
+    const filteredMeetings = data
       .filter(customMeetingIsVirtualOrHybrid)
       .map(meeting => {
         const sourceTimeZone = normalizeTimeZone(
@@ -489,9 +607,24 @@ async function loadCustomMeetings() {
           raw: meeting
         };
       });
+
+    return {
+      ok: true,
+      error: "",
+      rawCount: data.length,
+      virtualHybridCount: filteredMeetings.length,
+      meetings: filteredMeetings
+    };
   } catch (error) {
     console.warn(`No custom-meetings.json loaded: ${error.message}`);
-    return [];
+
+    return {
+      ok: false,
+      error: error.message,
+      rawCount: 0,
+      virtualHybridCount: 0,
+      meetings: []
+    };
   }
 }
 
@@ -538,11 +671,30 @@ app.get("/api/meetings", async (req, res) => {
       BMLT_SOURCES.map(source => fetchJsonSource(source))
     );
 
-    const customMeetings = await loadCustomMeetings();
+    const customResult = await loadCustomMeetings();
+
+    lastSourceReport = [
+      ...bmltResults.map(result => ({
+        source: result.source,
+        url: result.url,
+        ok: result.ok,
+        rawCount: result.rawCount,
+        virtualHybridCount: result.virtualHybridCount,
+        error: result.error
+      })),
+      {
+        source: "Custom Meetings",
+        url: "public/custom-meetings.json",
+        ok: customResult.ok,
+        rawCount: customResult.rawCount,
+        virtualHybridCount: customResult.virtualHybridCount,
+        error: customResult.error
+      }
+    ];
 
     const meetingsBeforeConversion = [
-      ...bmltResults.flat(),
-      ...customMeetings
+      ...bmltResults.flatMap(result => result.meetings),
+      ...customResult.meetings
     ];
 
     const convertedMeetings = meetingsBeforeConversion.map(meeting =>
@@ -552,10 +704,11 @@ app.get("/api/meetings", async (req, res) => {
     const meetings = dedupeMeetings(convertedMeetings);
 
     res.json({
-      source: "Virtual NA / BMLT + Custom NA Meetings",
+      source: "Multiple BMLT Sources + Custom NA Meetings",
       targetTimeZone,
       filterRule: "Virtual and hybrid meetings only. Phone-only meetings are excluded.",
       dedupeRule: "Duplicates are removed only when the same link appears at the same day/time. Same name alone is not treated as a duplicate.",
+      sourceReport: lastSourceReport,
       countBeforeDedupe: convertedMeetings.length,
       count: meetings.length,
       meetings
@@ -570,19 +723,25 @@ app.get("/api/meetings", async (req, res) => {
 
 app.get("/api/debug", async (req, res) => {
   try {
-    const customMeetings = await loadCustomMeetings();
+    const customResult = await loadCustomMeetings();
 
     res.json({
-      customMeetingCount: customMeetings.length,
-      filterRule: "Virtual and hybrid meetings only. Phone-only meetings are excluded.",
-      customMeetingNames: customMeetings.map(m => ({
-        name: m.name,
-        source: m.source,
-        weekday: m.weekday,
-        startTime: m.startTime,
-        timeZone: m.timeZone,
-        joinUrl: m.joinUrl
-      }))
+      bmltSourcesConfigured: BMLT_SOURCES,
+      lastSourceReport,
+      customMeetings: {
+        ok: customResult.ok,
+        error: customResult.error,
+        rawCount: customResult.rawCount,
+        virtualHybridCount: customResult.virtualHybridCount,
+        names: customResult.meetings.map(m => ({
+          name: m.name,
+          source: m.source,
+          weekday: m.weekday,
+          startTime: m.startTime,
+          timeZone: m.timeZone,
+          joinUrl: m.joinUrl
+        }))
+      }
     });
   } catch (error) {
     res.status(500).json({
