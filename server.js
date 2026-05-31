@@ -97,7 +97,7 @@ function extractUrls(text) {
   return matches || [];
 }
 
-function isVirtualOrHybridText(value) {
+function hasVirtualOrHybridLanguage(value) {
   const text = String(value || "").toLowerCase();
 
   return Boolean(
@@ -105,16 +105,31 @@ function isVirtualOrHybridText(value) {
     text.includes("hybrid") ||
     text.includes("zoom") ||
     text.includes("meets virtually") ||
-    text.includes("phone") ||
-    text.includes("dial") ||
-    text.includes("vm") ||
-    text.includes("hy") ||
-    text.includes("vo") ||
-    text.includes("tc")
+    text.includes("meets virtually and in-person") ||
+    text.includes("online") ||
+    text.includes("web") ||
+    text.includes("skype") ||
+    text.includes("virtual na")
   );
 }
 
-function isVirtualMeeting(m) {
+function hasPhoneOnlyLanguage(value) {
+  const text = String(value || "").toLowerCase();
+
+  const hasPhoneWords =
+    text.includes("phone") ||
+    text.includes("telephone") ||
+    text.includes("dial") ||
+    text.includes("conference call") ||
+    text.includes("call-in") ||
+    text.includes("call in");
+
+  const hasVirtualWords = hasVirtualOrHybridLanguage(text);
+
+  return hasPhoneWords && !hasVirtualWords;
+}
+
+function isVirtualOrHybridMeeting(m) {
   const joined = [
     m.meeting_name,
     m.name,
@@ -122,7 +137,6 @@ function isVirtualMeeting(m) {
     m.formats,
     m.format_shared_id_list,
     m.virtual_meeting_link,
-    m.phone_meeting_number,
     m.virtual_meeting_additional_info,
     m.comments,
     m.location_text,
@@ -130,34 +144,53 @@ function isVirtualMeeting(m) {
     m.venue_type
   ].join(" ");
 
-  return Boolean(
-    m.virtual_meeting_link ||
-    m.phone_meeting_number ||
-    m.virtual_meeting_additional_info ||
-    String(m.formats || "").includes("VM") ||
-    String(m.formats || "").includes("HY") ||
-    String(m.formats || "").includes("TC") ||
-    String(m.format_shared_id_list || "").includes("VM") ||
-    String(m.format_shared_id_list || "").includes("HY") ||
-    isVirtualOrHybridText(joined)
-  );
+  const formats = String(m.formats || m.format_shared_id_list || "").toUpperCase();
+
+  const hasVirtualLink =
+    Boolean(m.virtual_meeting_link) ||
+    extractUrls(m.virtual_meeting_additional_info || m.comments || "").length > 0;
+
+  const hasVirtualFormat =
+    formats.includes("VM") ||
+    formats.includes("HY") ||
+    formats.includes("VIRTUAL") ||
+    formats.includes("HYBRID");
+
+  const hasVirtualWords = hasVirtualOrHybridLanguage(joined);
+
+  const phoneOnly = hasPhoneOnlyLanguage(joined);
+
+  return Boolean((hasVirtualLink || hasVirtualFormat || hasVirtualWords) && !phoneOnly);
+}
+
+function customMeetingIsVirtualOrHybrid(meeting) {
+  const joined = [
+    meeting.name,
+    meeting.source,
+    meeting.formats,
+    meeting.extra,
+    meeting.joinUrl
+  ].join(" ");
+
+  const hasLink = Boolean(meeting.joinUrl);
+  const hasVirtualWords = hasVirtualOrHybridLanguage(joined);
+  const phoneOnly = hasPhoneOnlyLanguage(joined);
+
+  return Boolean((hasLink || hasVirtualWords) && !phoneOnly);
 }
 
 function bmltWeekdayToZeroBased(value) {
   const n = Number(value || 0);
   if (!n) return 0;
 
-  // BMLT usually uses 1 = Sunday through 7 = Saturday.
   return (n + 6) % 7;
 }
 
 function customWeekdayToZeroBased(value) {
   const n = Number(value || 0);
 
-  // Custom JSON uses Sunday = 0 through Saturday = 6.
   if (n >= 0 && n <= 6) return n;
 
-  // Backup support for Sunday = 1 through Saturday = 7.
   if (n >= 1 && n <= 7) return (n + 6) % 7;
 
   return 0;
@@ -362,9 +395,7 @@ function normalizeBmltMeeting(m, sourceName) {
     extractUrls(m.virtual_meeting_additional_info || m.comments || "")[0] ||
     "";
 
-  const phone =
-    m.phone_meeting_number ||
-    "";
+  const phone = "";
 
   const extraParts = [
     m.virtual_meeting_additional_info,
@@ -417,7 +448,7 @@ async function fetchJsonSource(source) {
         : [];
 
     return meetings
-      .filter(isVirtualMeeting)
+      .filter(isVirtualOrHybridMeeting)
       .map(m => normalizeBmltMeeting(m, source.name));
   } catch (error) {
     console.warn(`Skipped ${source.name}: ${error.message}`);
@@ -433,29 +464,31 @@ async function loadCustomMeetings() {
 
     if (!Array.isArray(data)) return [];
 
-    return data.map(meeting => {
-      const sourceTimeZone = normalizeTimeZone(
-        meeting.sourceTimeZone ||
-        meeting.timeZone ||
-        DEFAULT_TARGET_TIME_ZONE
-      );
+    return data
+      .filter(customMeetingIsVirtualOrHybrid)
+      .map(meeting => {
+        const sourceTimeZone = normalizeTimeZone(
+          meeting.sourceTimeZone ||
+          meeting.timeZone ||
+          DEFAULT_TARGET_TIME_ZONE
+        );
 
-      return {
-        source: meeting.source || "Custom NA Meeting",
-        fellowship: "NA",
-        name: meeting.name || "Unnamed Custom NA Meeting",
-        weekday: customWeekdayToZeroBased(meeting.weekday),
-        startTime: meeting.startTime || "00:00:00",
-        duration: meeting.duration || "",
-        timeZone: sourceTimeZone,
-        sourceTimeZone,
-        joinUrl: meeting.joinUrl || "",
-        phone: meeting.phone || "",
-        extra: meeting.extra || "",
-        formats: meeting.formats || "Virtual NA",
-        raw: meeting
-      };
-    });
+        return {
+          source: meeting.source || "Custom NA Meeting",
+          fellowship: "NA",
+          name: meeting.name || "Unnamed Custom NA Meeting",
+          weekday: customWeekdayToZeroBased(meeting.weekday),
+          startTime: meeting.startTime || "00:00:00",
+          duration: meeting.duration || "",
+          timeZone: sourceTimeZone,
+          sourceTimeZone,
+          joinUrl: meeting.joinUrl || "",
+          phone: "",
+          extra: meeting.extra || "",
+          formats: meeting.formats || "Virtual NA",
+          raw: meeting
+        };
+      });
   } catch (error) {
     console.warn(`No custom-meetings.json loaded: ${error.message}`);
     return [];
@@ -472,34 +505,19 @@ function normalizeDedupeUrl(value) {
     .replace(/[^a-z0-9]/g, "");
 }
 
-function normalizeDedupePhone(value) {
-  return String(value || "")
-    .replace(/[^0-9]/g, "");
-}
-
 function dedupeMeetings(meetings) {
   const seen = new Set();
   const unique = [];
 
   for (const meeting of meetings) {
     const normalizedUrl = normalizeDedupeUrl(meeting.joinUrl);
-    const normalizedPhone = normalizeDedupePhone(meeting.phone);
 
-    // Only dedupe when a link or phone number establishes that it is the same meeting.
-    // Same name alone does NOT mean duplicate.
-    let key = null;
-
-    if (normalizedUrl) {
-      key = `url|${normalizedUrl}|${meeting.weekday}|${meeting.startTime}`;
-    } else if (normalizedPhone) {
-      key = `phone|${normalizedPhone}|${meeting.weekday}|${meeting.startTime}`;
-    }
-
-    // If there is no link or phone, keep it. Do not dedupe by name.
-    if (!key) {
+    if (!normalizedUrl) {
       unique.push(meeting);
       continue;
     }
+
+    const key = `url|${normalizedUrl}|${meeting.weekday}|${meeting.startTime}`;
 
     if (seen.has(key)) continue;
 
@@ -536,7 +554,8 @@ app.get("/api/meetings", async (req, res) => {
     res.json({
       source: "Virtual NA / BMLT + Custom NA Meetings",
       targetTimeZone,
-      dedupeRule: "Duplicates are removed only when the same link or phone number appears at the same day/time. Same name alone is not treated as a duplicate.",
+      filterRule: "Virtual and hybrid meetings only. Phone-only meetings are excluded.",
+      dedupeRule: "Duplicates are removed only when the same link appears at the same day/time. Same name alone is not treated as a duplicate.",
       countBeforeDedupe: convertedMeetings.length,
       count: meetings.length,
       meetings
@@ -555,14 +574,14 @@ app.get("/api/debug", async (req, res) => {
 
     res.json({
       customMeetingCount: customMeetings.length,
+      filterRule: "Virtual and hybrid meetings only. Phone-only meetings are excluded.",
       customMeetingNames: customMeetings.map(m => ({
         name: m.name,
         source: m.source,
         weekday: m.weekday,
         startTime: m.startTime,
         timeZone: m.timeZone,
-        joinUrl: m.joinUrl,
-        phone: m.phone
+        joinUrl: m.joinUrl
       }))
     });
   } catch (error) {
