@@ -11,7 +11,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 app.use(cors());
-app.use(express.static("public"));
 
 const DEFAULT_TARGET_TIME_ZONE = "America/Detroit";
 
@@ -26,23 +25,52 @@ const BMLT_SOURCES = [
 const TIME_ZONE_ALIASES = {
   eastern: "America/New_York",
   east: "America/New_York",
+  et: "America/New_York",
   est: "America/New_York",
   edt: "America/New_York",
+  newyork: "America/New_York",
+  "new york": "America/New_York",
+
   michigan: "America/Detroit",
   detroit: "America/Detroit",
 
   central: "America/Chicago",
+  ct: "America/Chicago",
   cst: "America/Chicago",
   cdt: "America/Chicago",
+  chicago: "America/Chicago",
   nebraska: "America/Chicago",
 
   mountain: "America/Denver",
+  mt: "America/Denver",
   mst: "America/Denver",
   mdt: "America/Denver",
+  denver: "America/Denver",
 
   pacific: "America/Los_Angeles",
+  pt: "America/Los_Angeles",
   pst: "America/Los_Angeles",
-  pdt: "America/Los_Angeles"
+  pdt: "America/Los_Angeles",
+  california: "America/Los_Angeles",
+  losangeles: "America/Los_Angeles",
+  "los angeles": "America/Los_Angeles",
+
+  arizona: "America/Phoenix",
+  phoenix: "America/Phoenix",
+
+  uk: "Europe/London",
+  england: "Europe/London",
+  london: "Europe/London",
+
+  portugal: "Europe/Lisbon",
+  lisbon: "Europe/Lisbon",
+
+  thailand: "Asia/Bangkok",
+  bangkok: "Asia/Bangkok",
+
+  newzealand: "Pacific/Auckland",
+  "new zealand": "Pacific/Auckland",
+  auckland: "Pacific/Auckland"
 };
 
 function normalizeTimeZone(value) {
@@ -117,7 +145,6 @@ function isVirtualMeeting(m) {
 
 function bmltWeekdayToZeroBased(value) {
   const n = Number(value || 0);
-
   if (!n) return 0;
 
   // BMLT usually uses 1 = Sunday through 7 = Saturday.
@@ -127,13 +154,10 @@ function bmltWeekdayToZeroBased(value) {
 function customWeekdayToZeroBased(value) {
   const n = Number(value || 0);
 
-  // Your custom-meetings.json should use:
-  // Sunday = 0, Monday = 1, Tuesday = 2, Wednesday = 3,
-  // Thursday = 4, Friday = 5, Saturday = 6
+  // Custom JSON uses Sunday = 0 through Saturday = 6.
   if (n >= 0 && n <= 6) return n;
 
-  // Backup support if something comes in as BMLT style:
-  // Sunday = 1 through Saturday = 7
+  // Backup support for Sunday = 1 through Saturday = 7.
   if (n >= 1 && n <= 7) return (n + 6) % 7;
 
   return 0;
@@ -203,7 +227,7 @@ function zonedLocalTimeToUtcDate({ year, month, day, hour, minute, second, timeZ
   const wantedUtc = Date.UTC(year, month - 1, day, hour, minute, second);
   let guessedUtc = wantedUtc;
 
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < 5; i++) {
     const parts = getZonedParts(new Date(guessedUtc), timeZone);
 
     const actualUtc = Date.UTC(
@@ -222,6 +246,23 @@ function zonedLocalTimeToUtcDate({ year, month, day, hour, minute, second, timeZ
   return new Date(guessedUtc);
 }
 
+function getReferenceSunday() {
+  const now = new Date();
+  const utcNoonToday = new Date(Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    now.getUTCDate(),
+    12,
+    0,
+    0
+  ));
+
+  const day = utcNoonToday.getUTCDay();
+  utcNoonToday.setUTCDate(utcNoonToday.getUTCDate() - day);
+
+  return utcNoonToday;
+}
+
 function convertMeetingToTargetTimeZone(meeting, targetTimeZone) {
   const sourceTimeZone = normalizeTimeZone(
     meeting.sourceTimeZone ||
@@ -234,8 +275,7 @@ function convertMeetingToTargetTimeZone(meeting, targetTimeZone) {
   const sourceWeekday = customWeekdayToZeroBased(meeting.weekday);
   const { hour, minute, second } = parseTimeParts(meeting.startTime);
 
-  // Reference week starts Sunday, Jan 7, 2024.
-  const referenceSunday = new Date(Date.UTC(2024, 0, 7, 12, 0, 0));
+  const referenceSunday = getReferenceSunday();
   const sourceReferenceDate = new Date(referenceSunday);
   sourceReferenceDate.setUTCDate(referenceSunday.getUTCDate() + sourceWeekday);
 
@@ -271,9 +311,13 @@ function convertMeetingToTargetTimeZone(meeting, targetTimeZone) {
   const originalTimeNote =
     `Original listed time: ${dayNames[sourceWeekday]} ${formatTime(hour, minute, second)} ${sourceTimeZone}`;
 
-  const extra = meeting.extra
-    ? `${meeting.extra} | ${originalTimeNote}`
-    : originalTimeNote;
+  const extraAlreadyHasOriginalTime = String(meeting.extra || "").includes("Original listed time:");
+
+  const extra = extraAlreadyHasOriginalTime
+    ? meeting.extra
+    : meeting.extra
+      ? `${meeting.extra} | ${originalTimeNote}`
+      : originalTimeNote;
 
   return {
     ...meeting,
@@ -418,22 +462,44 @@ async function loadCustomMeetings() {
   }
 }
 
+function normalizeDedupeUrl(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/^https?:\/\//, "")
+    .replace(/^www\./, "")
+    .split("?")[0]
+    .replace(/\/$/, "")
+    .replace(/[^a-z0-9]/g, "");
+}
+
+function normalizeDedupePhone(value) {
+  return String(value || "")
+    .replace(/[^0-9]/g, "");
+}
+
 function dedupeMeetings(meetings) {
   const seen = new Set();
   const unique = [];
 
   for (const meeting of meetings) {
-    const key = [
-      meeting.name,
-      meeting.weekday,
-      meeting.startTime,
-      meeting.joinUrl,
-      meeting.phone,
-      meeting.source
-    ]
-      .join("|")
-      .toLowerCase()
-      .replace(/\s+/g, " ");
+    const normalizedUrl = normalizeDedupeUrl(meeting.joinUrl);
+    const normalizedPhone = normalizeDedupePhone(meeting.phone);
+
+    // Only dedupe when a link or phone number establishes that it is the same meeting.
+    // Same name alone does NOT mean duplicate.
+    let key = null;
+
+    if (normalizedUrl) {
+      key = `url|${normalizedUrl}|${meeting.weekday}|${meeting.startTime}`;
+    } else if (normalizedPhone) {
+      key = `phone|${normalizedPhone}|${meeting.weekday}|${meeting.startTime}`;
+    }
+
+    // If there is no link or phone, keep it. Do not dedupe by name.
+    if (!key) {
+      unique.push(meeting);
+      continue;
+    }
 
     if (seen.has(key)) continue;
 
@@ -456,10 +522,10 @@ app.get("/api/meetings", async (req, res) => {
 
     const customMeetings = await loadCustomMeetings();
 
-    const meetingsBeforeConversion = dedupeMeetings([
+    const meetingsBeforeConversion = [
       ...bmltResults.flat(),
       ...customMeetings
-    ]);
+    ];
 
     const convertedMeetings = meetingsBeforeConversion.map(meeting =>
       convertMeetingToTargetTimeZone(meeting, targetTimeZone)
@@ -470,6 +536,8 @@ app.get("/api/meetings", async (req, res) => {
     res.json({
       source: "Virtual NA / BMLT + Custom NA Meetings",
       targetTimeZone,
+      dedupeRule: "Duplicates are removed only when the same link or phone number appears at the same day/time. Same name alone is not treated as a duplicate.",
+      countBeforeDedupe: convertedMeetings.length,
       count: meetings.length,
       meetings
     });
@@ -479,6 +547,39 @@ app.get("/api/meetings", async (req, res) => {
       message: error.message
     });
   }
+});
+
+app.get("/api/debug", async (req, res) => {
+  try {
+    const customMeetings = await loadCustomMeetings();
+
+    res.json({
+      customMeetingCount: customMeetings.length,
+      customMeetingNames: customMeetings.map(m => ({
+        name: m.name,
+        source: m.source,
+        weekday: m.weekday,
+        startTime: m.startTime,
+        timeZone: m.timeZone,
+        joinUrl: m.joinUrl,
+        phone: m.phone
+      }))
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: true,
+      message: error.message
+    });
+  }
+});
+
+app.use(express.static("public"));
+
+app.use((req, res) => {
+  res.status(404).json({
+    error: true,
+    message: "Route not found"
+  });
 });
 
 const port = process.env.PORT || PORT;
