@@ -387,6 +387,9 @@
 
   <script>
     const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const minutesInDay = 24 * 60;
+    const minutesInWeek = 7 * minutesInDay;
+
     let allMeetings = [];
     let mode = "now";
 
@@ -405,30 +408,65 @@
       });
     }
 
-    function durationToMinutes(value) {
-      const text = String(value || "").toLowerCase();
+    function timeTextFromMinutes(totalMinutes) {
+      const wrapped = ((totalMinutes % minutesInDay) + minutesInDay) % minutesInDay;
+      const h = Math.floor(wrapped / 60);
+      const m = wrapped % 60;
+      return toDisplayTime(`${pad(h)}:${pad(m)}`);
+    }
 
-      const hms = text.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+    function durationToMinutes(value, meeting) {
+      const durationText = String(value || "").toLowerCase();
+      const allText = [
+        meeting?.name,
+        meeting?.formats,
+        meeting?.extra,
+        meeting?.source
+      ].join(" ").toLowerCase();
+
+      const hms = durationText.match(/(\d{1,3}):(\d{2})(?::(\d{2}))?/);
       if (hms) {
-        return Number(hms[1]) * 60 + Number(hms[2]);
+        const total = Number(hms[1]) * 60 + Number(hms[2]);
+        if (total > 0) return total;
       }
 
-      const hours = text.match(/(\d+(?:\.\d+)?)\s*h/);
-      const minutes = text.match(/(\d+)\s*m/);
+      const hours = durationText.match(/(\d+(?:\.\d+)?)\s*h/);
+      const minutes = durationText.match(/(\d+)\s*m/);
 
       let total = 0;
 
       if (hours) total += Math.round(Number(hours[1]) * 60);
       if (minutes) total += Number(minutes[1]);
 
-      return total > 0 ? total : 90;
+      if (total > 0) return total;
+
+      if (
+        allText.includes("24/7") ||
+        allText.includes("24 hour") ||
+        allText.includes("24-hour") ||
+        allText.includes("around the clock")
+      ) {
+        return 24 * 60;
+      }
+
+      if (
+        allText.includes("marathon") ||
+        allText.includes("15 hours") ||
+        allText.includes("15-hour") ||
+        allText.includes("15hrs") ||
+        allText.includes("15 hrs")
+      ) {
+        return 15 * 60;
+      }
+
+      return 90;
     }
 
     function makeTimeBlocks() {
       const select = document.getElementById("timeSelect");
       select.innerHTML = "";
 
-      for (let minutes = 0; minutes < 24 * 60; minutes += 15) {
+      for (let minutes = 0; minutes < minutesInDay; minutes += 15) {
         const h = Math.floor(minutes / 60);
         const m = minutes % 60;
         const value = `${pad(h)}:${pad(m)}`;
@@ -481,7 +519,7 @@
         day = (day + 6) % 7;
       }
 
-      if (total >= 24 * 60) {
+      if (total >= minutesInDay) {
         total = 0;
         day = (day + 1) % 7;
       }
@@ -546,8 +584,50 @@
       return `${pad(h)}:${pad(m)}`;
     }
 
+    function getNowWeekMinutes() {
+      const now = new Date();
+      return now.getDay() * minutesInDay + now.getHours() * 60 + now.getMinutes();
+    }
+
+    function getMeetingStartWeekMinutes(meeting) {
+      return meeting.localWeekday * minutesInDay + meeting.localMinutes;
+    }
+
+    function getProgressInfo(meeting) {
+      const nowWeek = getNowWeekMinutes();
+      const startWeek = getMeetingStartWeekMinutes(meeting);
+      const duration = durationToMinutes(meeting.duration, meeting);
+      const endWeek = startWeek + duration;
+
+      const checks = [
+        { start: startWeek, end: endWeek },
+        { start: startWeek - minutesInWeek, end: endWeek - minutesInWeek },
+        { start: startWeek + minutesInWeek, end: endWeek + minutesInWeek }
+      ];
+
+      for (const check of checks) {
+        if (nowWeek >= check.start && nowWeek < check.end) {
+          return {
+            inProgress: true,
+            start: check.start,
+            end: check.end,
+            duration
+          };
+        }
+      }
+
+      return {
+        inProgress: false,
+        start: startWeek,
+        end: endWeek,
+        duration
+      };
+    }
+
     function updateCurrentBlockText() {
-      if (mode === "now" && !document.getElementById("searchBox").value.trim()) {
+      const search = document.getElementById("searchBox").value.trim();
+
+      if (mode === "now" && !search) {
         document.getElementById("currentBlock").textContent = "In Progress";
         return;
       }
@@ -557,22 +637,6 @@
 
       document.getElementById("currentBlock").textContent =
         `${dayNames[day]}, at ${toDisplayTime(time)}`;
-    }
-
-    function isInProgress(meeting) {
-      const now = new Date();
-      const currentDay = now.getDay();
-      const currentMinutes = now.getHours() * 60 + now.getMinutes();
-
-      const duration = durationToMinutes(meeting.duration);
-      const start = meeting.localMinutes;
-      const end = start + duration;
-
-      if (meeting.localWeekday !== currentDay) {
-        return false;
-      }
-
-      return currentMinutes >= start && currentMinutes < end;
     }
 
     function renderMeetings() {
@@ -607,7 +671,7 @@
           }
 
           if (mode === "now") {
-            return isInProgress(m);
+            return getProgressInfo(m).inProgress;
           }
 
           return (
@@ -616,11 +680,17 @@
             m.localMinutes < selectedMinutes + 15
           );
         })
-        .sort((a, b) =>
-          a.localWeekday - b.localWeekday ||
-          a.localMinutes - b.localMinutes ||
-          a.name.localeCompare(b.name)
-        );
+        .sort((a, b) => {
+          if (mode === "now" && !search) {
+            return getProgressInfo(a).start - getProgressInfo(b).start || a.name.localeCompare(b.name);
+          }
+
+          return (
+            a.localWeekday - b.localWeekday ||
+            a.localMinutes - b.localMinutes ||
+            a.name.localeCompare(b.name)
+          );
+        });
 
       if (!filtered.length) {
         if (search) {
@@ -663,22 +733,20 @@
             <div class="block-header">${header}</div>
 
             ${meetings.map(m => {
-              const duration = durationToMinutes(m.duration);
-              const endMinutes = m.localMinutes + duration;
-              const endHour = Math.floor((endMinutes % (24 * 60)) / 60);
-              const endMinute = endMinutes % 60;
-              const endTime = toDisplayTime(`${pad(endHour)}:${pad(endMinute)}`);
+              const progress = getProgressInfo(m);
+              const endTime = timeTextFromMinutes(progress.end);
+              const startTime = timeTextFromMinutes(progress.start);
 
               return `
                 <div class="meeting">
                   <div class="meeting-title">${escapeHtml(m.name)}</div>
 
                   <div class="meta">
-                    ${dayNames[m.localWeekday]}, ${escapeHtml(m.localTimeText)} - ${escapeHtml(endTime)}
+                    ${dayNames[m.localWeekday]}, ${escapeHtml(startTime)} - ${escapeHtml(endTime)}
                     ${m.timeZone ? ` | Shown in: ${escapeHtml(m.timeZone)}` : ""}
                   </div>
 
-                  ${mode === "now" && !search ? `<div class="meta"><em>In progress since ${escapeHtml(m.localTimeText)}</em></div>` : ""}
+                  ${mode === "now" && !search ? `<div class="meta"><em>In progress since ${escapeHtml(startTime)}</em></div>` : ""}
                   ${m.source ? `<div class="meta">Source: ${escapeHtml(m.source)}</div>` : ""}
                   ${m.formats ? `<div class="meta">Formats: ${escapeHtml(m.formats)}</div>` : ""}
                   ${m.extra ? `<div class="meta">${escapeHtml(m.extra)}</div>` : ""}
