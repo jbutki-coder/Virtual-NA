@@ -90,11 +90,11 @@ const BMLT_SOURCES = [
     fellowship: "NA",
     url: "https://sandiegona.org/main_server/client_interface/json/?switcher=GetSearchResults"
   },
-  {
-    name: "Wisconsin Region / BMLT",
-    fellowship: "NA",
-    url: "https://wisconsinna.org/main_server/client_interface/json/?switcher=GetSearchResults"
-  },
+  {{
+  name: "Wisconsin Region / BMLT",
+  fellowship: "NA",
+  url: "https://bmlt.wi-na.org/main_server/client_interface/json/?switcher=GetSearchResults"
+}
   {
     name: "Minnesota Region / BMLT",
     fellowship: "NA",
