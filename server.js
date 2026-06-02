@@ -13,17 +13,19 @@ const __dirname = path.dirname(__filename);
 app.use(cors());
 
 const DEFAULT_TARGET_TIME_ZONE = "America/Detroit";
+const FETCH_TIMEOUT_MS = 5000;
+const CACHE_TTL_MS = 15 * 60 * 1000;
+
+let lastSourceReport = [];
+let cachedRawMeetings = null;
+let cachedAt = 0;
+let cachedSourceReport = [];
 
 const BMLT_SOURCES = [
   {
     name: "Virtual NA / BMLT",
     fellowship: "NA",
     url: "https://bmlt.virtual-na.org/main_server/client_interface/json/?switcher=GetSearchResults"
-  },
-  {
-    name: "Michigan Region / BMLT",
-    fellowship: "NA",
-    url: "https://michigan-na.org/bmlt/main_server/client_interface/json/?switcher=GetSearchResults"
   },
   {
     name: "NERNA / BMLT",
@@ -36,11 +38,6 @@ const BMLT_SOURCES = [
     url: "https://bmlt.wszf.org/main_server/client_interface/json/?switcher=GetSearchResults"
   },
   {
-    name: "SEZF / BMLT",
-    fellowship: "NA",
-    url: "https://bmlt.sezf.org/main_server/client_interface/json/?switcher=GetSearchResults"
-  },
-  {
     name: "Tennessee Region / BMLT",
     fellowship: "NA",
     url: "https://natennessee.org/main_server/client_interface/json/?switcher=GetSearchResults"
@@ -51,128 +48,11 @@ const BMLT_SOURCES = [
     url: "https://na-hawaii.org/bmltmain/client_interface/json/?switcher=GetSearchResults"
   },
   {
-    name: "Central Indiana Region / BMLT",
-    fellowship: "NA",
-    url: "https://cirna.org/main_server/client_interface/json/?switcher=GetSearchResults"
-  },
-  {
-    name: "Florida Region / BMLT",
-    fellowship: "NA",
-    url: "https://bmlt.floridarso.org/main_server/client_interface/json/?switcher=GetSearchResults"
-  },
-  {
-    name: "Georgia Region / BMLT",
-    fellowship: "NA",
-    url: "https://grscna.com/main_server/client_interface/json/?switcher=GetSearchResults"
-  },
-  {
-    name: "Arizona Region / BMLT",
-    fellowship: "NA",
-    url: "https://arizona-na.org/main_server/client_interface/json/?switcher=GetSearchResults"
-  },
-  {
-    name: "Colorado Region / BMLT",
-    fellowship: "NA",
-    url: "https://nacolorado.org/main_server/client_interface/json/?switcher=GetSearchResults"
-  },
-  {
-    name: "Greater New York Region / BMLT",
-    fellowship: "NA",
-    url: "https://newyorkna.org/main_server/client_interface/json/?switcher=GetSearchResults"
-  },
-  {
-    name: "Southern California Region / BMLT",
-    fellowship: "NA",
-    url: "https://socalna.org/main_server/client_interface/json/?switcher=GetSearchResults"
-  },
-  {
-    name: "San Diego Imperial Region / BMLT",
-    fellowship: "NA",
-    url: "https://sandiegona.org/main_server/client_interface/json/?switcher=GetSearchResults"
-  },
-  {{
-  name: "Wisconsin Region / BMLT",
-  fellowship: "NA",
-  url: "https://bmlt.wi-na.org/main_server/client_interface/json/?switcher=GetSearchResults"
-}
-  {
-    name: "Minnesota Region / BMLT",
-    fellowship: "NA",
-    url: "https://naminnesota.org/main_server/client_interface/json/?switcher=GetSearchResults"
-  },
-  {
-    name: "New Jersey Region / BMLT",
-    fellowship: "NA",
-    url: "https://nj-na.org/main_server/client_interface/json/?switcher=GetSearchResults"
-  },
-  {
-    name: "Eastern Pennsylvania Region / BMLT",
-    fellowship: "NA",
-    url: "https://eparna.org/main_server/client_interface/json/?switcher=GetSearchResults"
-  },
-  {
-    name: "Connecticut Region / BMLT",
-    fellowship: "NA",
-    url: "https://ctna.org/main_server/client_interface/json/?switcher=GetSearchResults"
-  },
-  {
-    name: "Iowa Region / BMLT",
-    fellowship: "NA",
-    url: "https://iowa-na.org/main_server/client_interface/json/?switcher=GetSearchResults"
-  },
-  {
-    name: "Kentucky Region / BMLT",
-    fellowship: "NA",
-    url: "https://kentuckiana.org/main_server/client_interface/json/?switcher=GetSearchResults"
-  },
-  {
-    name: "Ohio Region / BMLT",
-    fellowship: "NA",
-    url: "https://naohio.org/main_server/client_interface/json/?switcher=GetSearchResults"
-  },
-  {
-    name: "Alabama Northwest Florida / BMLT",
-    fellowship: "NA",
-    url: "https://anwfnara.org/main_server/client_interface/json/?switcher=GetSearchResults"
-  },
-  {
-    name: "Tejas Bluebonnet Region / BMLT",
-    fellowship: "NA",
-    url: "https://tbrna.org/main_server/client_interface/json/?switcher=GetSearchResults"
-  },
-  {
     name: "Australia Region / BMLT",
     fellowship: "NA",
     url: "https://www.na.org.au/main_server/client_interface/json/?switcher=GetSearchResults"
-  },
-  {
-    name: "South Africa Region / BMLT",
-    fellowship: "NA",
-    url: "https://na.org.za/main_server/client_interface/json/?switcher=GetSearchResults"
-  },
-  {
-    name: "UKNA / BMLT",
-    fellowship: "NA",
-    url: "https://ukna.org/main_server/client_interface/json/?switcher=GetSearchResults"
-  },
-  {
-    name: "Ireland NA / BMLT",
-    fellowship: "NA",
-    url: "https://www.na-ireland.org/main_server/client_interface/json/?switcher=GetSearchResults"
-  },
-  {
-    name: "Iran Region One / Possible BMLT",
-    fellowship: "NA",
-    url: "https://meeting.nairan1.org/main_server/client_interface/json/?switcher=GetSearchResults"
-  },
-  {
-    name: "Iran Region One / Possible BMLT Alt",
-    fellowship: "NA",
-    url: "https://meeting.nairan1.org/en/main_server/client_interface/json/?switcher=GetSearchResults"
   }
 ];
-
-let lastSourceReport = [];
 
 const TIME_ZONE_ALIASES = {
   eastern: "America/New_York",
@@ -601,7 +481,7 @@ function normalizeBmltMeeting(m, sourceName) {
   };
 }
 
-async function fetchWithTimeout(url, options = {}, timeoutMs = 12000) {
+async function fetchWithTimeout(url, options = {}, timeoutMs = FETCH_TIMEOUT_MS) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -630,7 +510,19 @@ async function fetchJsonSource(source) {
       throw new Error(`${source.name} returned HTTP ${response.status}`);
     }
 
-    const data = await response.json();
+    const contentType = response.headers.get("content-type") || "";
+
+    if (!contentType.includes("application/json") && !contentType.includes("text/plain")) {
+      throw new Error(`${source.name} did not return JSON`);
+    }
+
+    const text = await response.text();
+
+    if (text.trim().startsWith("<")) {
+      throw new Error(`${source.name} returned HTML instead of JSON`);
+    }
+
+    const data = JSON.parse(text);
 
     const rawMeetings = Array.isArray(data)
       ? data
@@ -761,54 +653,88 @@ function dedupeMeetings(meetings) {
   return unique;
 }
 
+async function getRawMeetingsWithCache(forceRefresh = false) {
+  const cacheIsValid =
+    cachedRawMeetings &&
+    Date.now() - cachedAt < CACHE_TTL_MS;
+
+  if (cacheIsValid && !forceRefresh) {
+    lastSourceReport = cachedSourceReport;
+    return {
+      meetings: cachedRawMeetings,
+      sourceReport: cachedSourceReport,
+      fromCache: true
+    };
+  }
+
+  const bmltResults = await Promise.all(
+    BMLT_SOURCES.map(source => fetchJsonSource(source))
+  );
+
+  const customResult = await loadCustomMeetings();
+
+  const sourceReport = [
+    ...bmltResults.map(result => ({
+      source: result.source,
+      url: result.url,
+      ok: result.ok,
+      rawCount: result.rawCount,
+      virtualHybridCount: result.virtualHybridCount,
+      error: result.error
+    })),
+    {
+      source: "Custom Meetings",
+      url: "public/custom-meetings.json",
+      ok: customResult.ok,
+      rawCount: customResult.rawCount,
+      virtualHybridCount: customResult.virtualHybridCount,
+      error: customResult.error
+    }
+  ];
+
+  const rawMeetings = [
+    ...bmltResults.flatMap(result => result.meetings),
+    ...customResult.meetings
+  ];
+
+  cachedRawMeetings = rawMeetings;
+  cachedAt = Date.now();
+  cachedSourceReport = sourceReport;
+  lastSourceReport = sourceReport;
+
+  return {
+    meetings: rawMeetings,
+    sourceReport,
+    fromCache: false
+  };
+}
+
 app.get("/api/meetings", async (req, res) => {
   try {
+    res.setHeader("Cache-Control", "no-store");
+
     const targetTimeZone = normalizeTimeZone(
       req.query.tz || DEFAULT_TARGET_TIME_ZONE
     );
 
-    const bmltResults = await Promise.all(
-      BMLT_SOURCES.map(source => fetchJsonSource(source))
-    );
+    const forceRefresh = req.query.refresh === "1";
 
-    const customResult = await loadCustomMeetings();
+    const rawData = await getRawMeetingsWithCache(forceRefresh);
 
-    lastSourceReport = [
-      ...bmltResults.map(result => ({
-        source: result.source,
-        url: result.url,
-        ok: result.ok,
-        rawCount: result.rawCount,
-        virtualHybridCount: result.virtualHybridCount,
-        error: result.error
-      })),
-      {
-        source: "Custom Meetings",
-        url: "public/custom-meetings.json",
-        ok: customResult.ok,
-        rawCount: customResult.rawCount,
-        virtualHybridCount: customResult.virtualHybridCount,
-        error: customResult.error
-      }
-    ];
-
-    const meetingsBeforeConversion = [
-      ...bmltResults.flatMap(result => result.meetings),
-      ...customResult.meetings
-    ];
-
-    const convertedMeetings = meetingsBeforeConversion.map(meeting =>
+    const convertedMeetings = rawData.meetings.map(meeting =>
       convertMeetingToTargetTimeZone(meeting, targetTimeZone)
     );
 
     const meetings = dedupeMeetings(convertedMeetings);
 
     res.json({
-      source: "Multiple BMLT Sources + Custom NA Meetings",
+      source: "Working BMLT Sources + Custom NA Meetings",
       targetTimeZone,
+      fromCache: rawData.fromCache,
+      cacheAgeSeconds: cachedAt ? Math.round((Date.now() - cachedAt) / 1000) : null,
       filterRule: "Virtual and hybrid meetings only. Phone-only meetings are excluded.",
       dedupeRule: "Duplicates are removed only when the same link appears at the same day/time. Same name alone is not treated as a duplicate.",
-      sourceReport: lastSourceReport,
+      sourceReport: rawData.sourceReport,
       countBeforeDedupe: convertedMeetings.length,
       count: meetings.length,
       meetings
@@ -823,17 +749,26 @@ app.get("/api/meetings", async (req, res) => {
 
 app.get("/api/debug", async (req, res) => {
   try {
+    res.setHeader("Cache-Control", "no-store");
+
     const customResult = await loadCustomMeetings();
 
     res.json({
       bmltSourcesConfigured: BMLT_SOURCES,
+      cache: {
+        hasCache: Boolean(cachedRawMeetings),
+        cachedAt,
+        cacheAgeSeconds: cachedAt ? Math.round((Date.now() - cachedAt) / 1000) : null,
+        cacheTtlSeconds: Math.round(CACHE_TTL_MS / 1000),
+        cachedMeetingCount: cachedRawMeetings ? cachedRawMeetings.length : 0
+      },
       lastSourceReport,
       customMeetings: {
         ok: customResult.ok,
         error: customResult.error,
         rawCount: customResult.rawCount,
         virtualHybridCount: customResult.virtualHybridCount,
-        names: customResult.meetings.map(m => ({
+        names: customResult.meetings.slice(0, 100).map(m => ({
           name: m.name,
           source: m.source,
           weekday: m.weekday,
@@ -842,6 +777,30 @@ app.get("/api/debug", async (req, res) => {
           joinUrl: m.joinUrl
         }))
       }
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: true,
+      message: error.message
+    });
+  }
+});
+
+app.get("/api/refresh", async (req, res) => {
+  try {
+    res.setHeader("Cache-Control", "no-store");
+
+    cachedRawMeetings = null;
+    cachedAt = 0;
+    cachedSourceReport = [];
+
+    const rawData = await getRawMeetingsWithCache(true);
+
+    res.json({
+      ok: true,
+      message: "Meeting cache refreshed.",
+      count: rawData.meetings.length,
+      sourceReport: rawData.sourceReport
     });
   } catch (error) {
     res.status(500).json({
