@@ -20,6 +20,10 @@ let lastSourceReport = [];
 let cachedRawMeetings = null;
 let cachedAt = 0;
 let cachedSourceReport = [];
+let refreshPromise = null;
+const sourceSnapshots = new Map();
+const zoneValidation = new Map();
+const zoneFormatters = new Map();
 
 const BMLT_SOURCES = [
   {
@@ -134,10 +138,13 @@ function normalizeTimeZone(value) {
     return TIME_ZONE_ALIASES[lower];
   }
 
+  if (zoneValidation.has(raw)) return zoneValidation.get(raw);
   try {
     new Intl.DateTimeFormat("en-US", { timeZone: raw }).format(new Date());
+    zoneValidation.set(raw, raw);
     return raw;
   } catch {
+    zoneValidation.set(raw, DEFAULT_TARGET_TIME_ZONE);
     return DEFAULT_TARGET_TIME_ZONE;
   }
 }
@@ -283,7 +290,9 @@ function formatTime(hour, minute, second = 0) {
 }
 
 function getZonedParts(date, timeZone) {
-  const formatter = new Intl.DateTimeFormat("en-US", {
+  let formatter = zoneFormatters.get(timeZone);
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat("en-US", {
     timeZone,
     year: "numeric",
     month: "2-digit",
@@ -292,7 +301,9 @@ function getZonedParts(date, timeZone) {
     minute: "2-digit",
     second: "2-digit",
     hourCycle: "h23"
-  });
+    });
+    zoneFormatters.set(timeZone, formatter);
+  }
 
   const parts = formatter.formatToParts(date);
   const values = {};
@@ -491,7 +502,8 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = FETCH_TIMEOUT_MS)
       signal: controller.signal
     });
 
-    return response;
+    const text = await response.text();
+    return { ok: response.ok, status: response.status, headers: response.headers, text: async () => text };
   } finally {
     clearTimeout(timeout);
   }
@@ -528,7 +540,8 @@ async function fetchJsonSource(source) {
       ? data
       : Array.isArray(data.meetings)
         ? data.meetings
-        : [];
+        : null;
+    if (!rawMeetings) throw new Error("Unexpected BMLT response shape");
 
     const filteredMeetings = rawMeetings
       .filter(isVirtualOrHybridMeeting)
@@ -654,23 +667,37 @@ function dedupeMeetings(meetings) {
 }
 
 async function getRawMeetingsWithCache(forceRefresh = false) {
-  const cacheIsValid =
-    cachedRawMeetings &&
-    Date.now() - cachedAt < CACHE_TTL_MS;
-
-  if (cacheIsValid && !forceRefresh) {
-    lastSourceReport = cachedSourceReport;
-    return {
-      meetings: cachedRawMeetings,
-      sourceReport: cachedSourceReport,
-      fromCache: true
-    };
+  if (cachedRawMeetings && !forceRefresh) {
+    if (Date.now() - cachedAt >= CACHE_TTL_MS) {
+      refreshMeetings().catch(error => console.warn(error));
+    }
+    return { meetings: cachedRawMeetings, sourceReport: cachedSourceReport, fromCache: true };
   }
+  return refreshMeetings();
+}
 
+function refreshMeetings() {
+  if (!refreshPromise) {
+    refreshPromise = updateMeetingCache().finally(() => { refreshPromise = null; });
+  }
+  return refreshPromise;
+}
+
+async function updateMeetingCache() {
   const bmltResults = await Promise.all(
     BMLT_SOURCES.map(source => fetchJsonSource(source))
   );
 
+  for (const result of bmltResults) {
+    if (result.ok) sourceSnapshots.set(result.source, { meetings: result.meetings, fetchedAt: Date.now() });
+    else {
+      const previous = sourceSnapshots.get(result.source);
+      if (previous && Date.now() - previous.fetchedAt < 24 * 60 * 60 * 1000) {
+        result.meetings = previous.meetings;
+        result.stale = true;
+      }
+    }
+  }
   const customResult = await loadCustomMeetings();
 
   const sourceReport = [
@@ -680,7 +707,8 @@ async function getRawMeetingsWithCache(forceRefresh = false) {
       ok: result.ok,
       rawCount: result.rawCount,
       virtualHybridCount: result.virtualHybridCount,
-      error: result.error
+      error: result.error,
+      stale: Boolean(result.stale)
     })),
     {
       source: "Custom Meetings",
@@ -737,7 +765,7 @@ app.get("/api/meetings", async (req, res) => {
       sourceReport: rawData.sourceReport,
       countBeforeDedupe: convertedMeetings.length,
       count: meetings.length,
-      meetings
+      meetings: meetings.map(({ raw, ...meeting }) => meeting)
     });
   } catch (error) {
     res.status(500).json({
@@ -790,10 +818,6 @@ app.get("/api/refresh", async (req, res) => {
   try {
     res.setHeader("Cache-Control", "no-store");
 
-    cachedRawMeetings = null;
-    cachedAt = 0;
-    cachedSourceReport = [];
-
     const rawData = await getRawMeetingsWithCache(true);
 
     res.json({
@@ -810,7 +834,7 @@ app.get("/api/refresh", async (req, res) => {
   }
 });
 
-app.use(express.static("public"));
+app.use(express.static(path.join(__dirname, "public")));
 
 app.use((req, res) => {
   res.status(404).json({
@@ -823,4 +847,6 @@ const port = process.env.PORT || PORT;
 
 app.listen(port, () => {
   console.log(`Virtual NA finder running on port ${port}`);
+  refreshMeetings().catch(console.warn);
+  setInterval(() => refreshMeetings().catch(console.warn), CACHE_TTL_MS).unref();
 });
